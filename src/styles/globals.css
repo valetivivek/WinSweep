@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+/* JetBrains Mono, the single family. 800 carries the heavy display titles. */
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/700.css";
+@import "@fontsource/jetbrains-mono/800.css";
+
+/*
+  Dark mode is driven by a `.dark` class on <html>, toggled by the theme store.
+  Light is the default per the product brief; dark is first-class.
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Tokens in OKLCH. Every neutral is tinted toward the iris hue (~285) so the
+  greys never read clinical. A single electric-iris accent carries actions,
+  selection, and focus. Light values on :root, dark overrides on .dark.
+*/
+:root {
+  --bg: oklch(0.971 0.005 286);
+  --surface: oklch(0.995 0.003 286);
+  --surface-hover: oklch(0.955 0.006 286);
+  --surface-active: oklch(0.925 0.009 286);
+  --sidebar: oklch(0.945 0.007 287);
+  --border: oklch(0.9 0.006 286);
+  --border-strong: oklch(0.84 0.009 286);
+  --text: oklch(0.245 0.021 287);
+  --text-muted: oklch(0.505 0.017 287);
+  --text-faint: oklch(0.645 0.014 287);
+
+  --accent: oklch(0.55 0.205 285);
+  --accent-hover: oklch(0.49 0.205 285);
+  --accent-soft: oklch(0.55 0.205 285 / 0.12);
+  --accent-contrast: oklch(0.99 0.01 285);
+
+  --danger: oklch(0.575 0.205 27);
+  --danger-soft: oklch(0.575 0.205 27 / 0.12);
+  --success: oklch(0.62 0.15 152);
+  --warning: oklch(0.72 0.145 78);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark {
+  --bg: oklch(0.172 0.011 287);
+  --surface: oklch(0.208 0.013 287);
+  --surface-hover: oklch(0.245 0.015 287);
+  --surface-active: oklch(0.285 0.017 287);
+  --sidebar: oklch(0.148 0.011 287);
+  --border: oklch(0.3 0.014 287);
+  --border-strong: oklch(0.385 0.016 287);
+  --text: oklch(0.93 0.012 287);
+  --text-muted: oklch(0.685 0.015 287);
+  --text-faint: oklch(0.52 0.014 287);
+
+  --accent: oklch(0.62 0.2 285);
+  --accent-hover: oklch(0.68 0.2 285);
+  --accent-soft: oklch(0.62 0.2 285 / 0.2);
+  --accent-contrast: oklch(0.99 0.01 285);
+
+  --danger: oklch(0.66 0.19 27);
+  --danger-soft: oklch(0.66 0.19 27 / 0.18);
+  --success: oklch(0.7 0.15 152);
+  --warning: oklch(0.78 0.14 78);
+}
+
+/* Map tokens into Tailwind. `inline` keeps utilities pointed at the live CSS
+   variables so .dark overrides take effect without recompiling. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+  --color-sidebar: var(--sidebar);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-contrast: var(--accent-contrast);
+
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --font-sans: "JetBrains Mono", ui-monospace, "Cascadia Code", "Segoe UI", monospace;
+
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "calt", "liga", "tnum";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Desktop chrome: no document scroll or text selection on the shell. */
+#root {
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Quiet scrollbars matching the surface motif. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 9999px;
+}
+
+/* Indeterminate progress sweep, used for inline update progress. */
+@keyframes ws-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+/* Motion: quick, eased-out, slightly upward. State and reveal, not decoration. */
+@keyframes ws-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ws-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ws-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ws-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ws-page {
+  animation: ws-fade-in 0.22s var(--ease-out-expo) both;
+}
+
+/* List rows enter with a small stagger; --i is set inline per row. */
+.ws-row {
+  animation: ws-row-in 0.26s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 22ms);
+}
+
+.ws-overlay {
+  animation: ws-overlay-in 0.16s ease both;
+}
+
+.ws-dialog {
+  animation: ws-dialog-in 0.2s var(--ease-out-expo) both;
+}
+
+/* Respect reduced motion: keep state, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .ws-page,
+  .ws-row,
+  .ws-overlay,
+  .ws-dialog,
+  .animate-\[ws-indeterminate_1\.2s_ease-in-out_infinite\] {
+    animation: none !important;
+  }
+}
