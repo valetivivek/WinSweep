@@ -12,10 +12,14 @@ pub fn run() {
             apps::list_installed_apps,
             apps::uninstall_app,
             apps::open_install_location,
+            apps::app_icons,
             updates::list_updates,
             updates::update_app,
             cleanup::scan_residuals,
             cleanup::delete_residuals,
+            cleanup::list_ignored,
+            cleanup::add_ignored,
+            cleanup::clear_ignored,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "package": "npm run package:app",
+    "package:app": "tauri build"
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.8",

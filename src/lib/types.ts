@@ -8,10 +8,16 @@ export interface InstalledApp {
   name: string;
   publisher: string;
   version: string;
+  /** Optional app description from installer metadata. Null when unavailable. */
+  description: string | null;
+  /** Optional app category from installer metadata. Null when unavailable. */
+  category: string | null;
   /** Size on disk in bytes. Null when the size could not be determined. */
   sizeBytes: number | null;
   /** ISO 8601 date string, or null when unknown. */
   installDate: string | null;
+  /** ISO 8601 date string, or null when Windows does not expose reliable data. */
+  lastUsedAt: string | null;
   /** Absolute install location, used by "open file location". */
   installLocation: string | null;
 }

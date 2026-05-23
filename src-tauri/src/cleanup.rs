@@ -198,6 +198,56 @@ fn scan_registry(installed: &HashSet<String>, out: &mut Vec<ResidualItem>) {
     }
 }
 
+/// Path to the JSON file that persists user-ignored residual paths.
+fn ignore_store_path() -> Option<PathBuf> {
+    let base = std::env::var_os("APPDATA").map(PathBuf::from)?;
+    Some(base.join("WinSweep").join("ignored.json"))
+}
+
+/// Load the set of paths the user has chosen to never flag again.
+fn load_ignored() -> HashSet<String> {
+    match ignore_store_path() {
+        Some(path) => fs::read_to_string(&path)
+            .ok()
+            .and_then(|t| serde_json::from_str::<Vec<String>>(&t).ok())
+            .map(|v| v.into_iter().collect())
+            .unwrap_or_default(),
+        None => HashSet::new(),
+    }
+}
+
+fn save_ignored(set: &HashSet<String>) -> Result<(), String> {
+    let path = ignore_store_path().ok_or("Could not resolve the WinSweep config directory")?;
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let list: Vec<&String> = set.iter().collect();
+    fs::write(&path, serde_json::to_string(&list).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())
+}
+
+/// The paths the user has permanently excluded from cleanup scans.
+#[tauri::command]
+pub fn list_ignored() -> Vec<String> {
+    let mut v: Vec<String> = load_ignored().into_iter().collect();
+    v.sort();
+    v
+}
+
+/// Add paths to the ignore list so future scans skip them.
+#[tauri::command]
+pub fn add_ignored(paths: Vec<String>) -> Result<(), String> {
+    let mut set = load_ignored();
+    set.extend(paths);
+    save_ignored(&set)
+}
+
+/// Forget every ignored path, so the next scan surfaces them again.
+#[tauri::command]
+pub fn clear_ignored() -> Result<(), String> {
+    save_ignored(&HashSet::new())
+}
+
 #[tauri::command]
 pub fn scan_residuals() -> Result<Vec<ResidualItem>, String> {
     let installed = installed_tokens();
@@ -208,6 +258,10 @@ pub fn scan_residuals() -> Result<Vec<ResidualItem>, String> {
     scan_data_root("PROGRAMDATA", "ProgramData", &installed, &mut items);
     scan_temp(&mut items);
     scan_registry(&installed, &mut items);
+
+    // Drop anything the user has explicitly chosen to ignore.
+    let ignored = load_ignored();
+    items.retain(|i| !ignored.contains(&i.path));
 
     // Largest reclaimable first; registry keys (size 0) settle at the end.
     items.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
@@ -234,12 +288,12 @@ fn delete_path(path: &str) -> Result<(), String> {
     if !within_allowed_root(p) {
         return Err(format!("Refused: {path} is outside the cleanup roots"));
     }
-    let meta = fs::symlink_metadata(p).map_err(|e| format!("{path}: {e}"))?;
-    if meta.is_dir() {
-        fs::remove_dir_all(p).map_err(|e| format!("{path}: {e}"))
-    } else {
-        fs::remove_file(p).map_err(|e| format!("{path}: {e}"))
-    }
+    // Confirm it still exists before touching it (the scan list can go stale).
+    fs::symlink_metadata(p).map_err(|e| format!("{path}: {e}"))?;
+    // Send to the Recycle Bin rather than deleting permanently, so a mistaken
+    // cleanup is always recoverable. Registry keys cannot be recycled and are
+    // handled separately in `delete_registry`.
+    trash::delete(p).map_err(|e| format!("{path}: {e}"))
 }
 
 fn delete_registry(key_path: &str) -> Result<(), String> {

@@ -12,11 +12,43 @@ export function formatBytes(bytes: number | null): string {
 /** Friendly date like "12 Mar 2025". Returns a dash for unknown dates. */
 export function formatDate(iso: string | null): string {
   if (!iso) return "--";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "--";
+  const date = parseLocalDate(iso);
+  if (!date) return "--";
   return date.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
+}
+
+function parseLocalDate(iso: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (match) {
+    const [, y, m, d] = match;
+    const date = new Date(Number(y), Number(m) - 1, Number(d));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/** Friendly last-used text. Returns a clear fallback when metadata is absent. */
+export function formatLastUsed(iso: string | null | undefined): string {
+  if (!iso) return "Last used unknown";
+  const date = parseLocalDate(iso);
+  if (!date) return "Last used unknown";
+
+  const today = startOfDay(new Date());
+  const used = startOfDay(date);
+  const diffDays = Math.round((today.getTime() - used.getTime()) / 86_400_000);
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays > 1 && diffDays <= 30) return `${diffDays} days ago`;
+
+  return `Last used ${formatDate(iso)}`;
 }

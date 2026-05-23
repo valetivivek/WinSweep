@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Sidebar } from "./components/sidebar";
+import { DevelopmentNotice } from "./components/development-notice";
 import { InstalledAppsPage } from "./pages/installed-apps";
 import { UpdatesPage } from "./pages/updates";
 import { CleanupPage } from "./pages/cleanup";
@@ -32,8 +33,9 @@ function App() {
     <div className="flex h-full w-full bg-bg text-text">
       <Sidebar active={page} onNavigate={setPage} />
       <main className="flex h-full min-w-0 flex-1 flex-col">
+        <DevelopmentNotice />
         {/* Keyed so each page remounts and replays its enter animation on nav. */}
-        <div key={page} className="ws-page flex h-full min-h-0 flex-col">
+        <div key={page} className="ws-page flex min-h-0 flex-1 flex-col">
           {page === "installed" && <InstalledAppsPage />}
           {page === "updates" && <UpdatesPage />}
           {page === "cleanup" && <CleanupPage />}
