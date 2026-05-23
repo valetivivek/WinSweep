@@ -14,6 +14,10 @@ pub struct AppUpdate {
     pub publisher: String,
     pub current_version: String,
     pub available_version: String,
+    /// Where the upgrade comes from: "winget", "msstore", or another registered
+    /// source. Lets the UI badge Store apps without distinguishing them in the
+    /// installed-apps list.
+    pub source: String,
 }
 
 /// Run winget and capture stdout as text, mapping spawn failures to a friendly
@@ -36,31 +40,25 @@ fn column(chars: &[char], start: usize, end: Option<usize>) -> String {
     chars[start..end.max(start)].iter().collect::<String>().trim().to_string()
 }
 
-#[tauri::command]
-pub fn list_updates() -> Result<Vec<AppUpdate>, String> {
-    let text = winget(&[
-        "upgrade",
-        "--include-unknown",
-        "--accept-source-agreements",
-        "--disable-interactivity",
-    ])?;
-
+/// Parse winget's `upgrade` table into structured updates, tagging each row
+/// with the registered source it came from (winget / msstore / …) so the UI
+/// can flag Store apps without a second query.
+fn parse_upgrade_table(text: &str, default_source: &str) -> Vec<AppUpdate> {
     let lines: Vec<&str> = text.lines().collect();
 
-    // Locate the header row, then read the column start offsets from it.
     let header_idx = lines.iter().position(|l| {
         l.contains("Name") && l.contains("Id") && l.contains("Version") && l.contains("Available")
     });
     let header_idx = match header_idx {
         Some(i) => i,
-        None => return Ok(Vec::new()), // no header => nothing to upgrade
+        None => return Vec::new(),
     };
 
     let header = lines[header_idx];
     let id_pos = header.find("Id").unwrap_or(0);
     let version_pos = header.find("Version").unwrap_or(id_pos);
     let available_pos = header.find("Available").unwrap_or(version_pos);
-    let source_pos = header.find("Source").unwrap_or(available_pos);
+    let source_pos = header.find("Source");
 
     let mut updates = Vec::new();
     for line in lines.iter().skip(header_idx + 1) {
@@ -68,7 +66,6 @@ pub fn list_updates() -> Result<Vec<AppUpdate>, String> {
         if trimmed.is_empty() || trimmed.chars().all(|c| c == '-') {
             continue;
         }
-        // The data block ends at the summary line ("N upgrades available").
         if trimmed.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false)
             && trimmed.to_lowercase().contains("upgrade")
         {
@@ -78,8 +75,13 @@ pub fn list_updates() -> Result<Vec<AppUpdate>, String> {
         let chars: Vec<char> = line.chars().collect();
         let name = column(&chars, 0, Some(id_pos));
         let id = column(&chars, id_pos, Some(version_pos));
+        let available_end = source_pos.unwrap_or(chars.len());
         let current = column(&chars, version_pos, Some(available_pos));
-        let available = column(&chars, available_pos, Some(source_pos));
+        let available = column(&chars, available_pos, Some(available_end));
+        let source = source_pos
+            .map(|p| column(&chars, p, None))
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| default_source.to_string());
 
         if name.is_empty() || id.is_empty() || available.is_empty() {
             continue;
@@ -88,30 +90,73 @@ pub fn list_updates() -> Result<Vec<AppUpdate>, String> {
         updates.push(AppUpdate {
             id: id.clone(),
             name,
-            publisher: id, // winget upgrade omits publisher; show the package id
+            publisher: id,
             current_version: current,
             available_version: available,
+            source,
         });
+    }
+    updates
+}
+
+#[tauri::command]
+pub fn list_updates() -> Result<Vec<AppUpdate>, String> {
+    // Default pass covers every registered source (winget + msstore). Most
+    // Store apps with a winget mapping surface here without a second query.
+    let text = winget(&[
+        "upgrade",
+        "--include-unknown",
+        "--accept-source-agreements",
+        "--disable-interactivity",
+    ])?;
+    let mut updates = parse_upgrade_table(&text, "winget");
+
+    // Second pass scoped to msstore. Some Store apps only appear when we ask
+    // that source explicitly (and accept its agreement). Failures here are
+    // non-fatal: winget may not have the msstore source on stripped installs.
+    if let Ok(store_text) = winget(&[
+        "upgrade",
+        "--source",
+        "msstore",
+        "--include-unknown",
+        "--accept-source-agreements",
+        "--disable-interactivity",
+    ]) {
+        let store_updates = parse_upgrade_table(&store_text, "msstore");
+        let existing: std::collections::HashSet<String> =
+            updates.iter().map(|u| u.id.clone()).collect();
+        for u in store_updates {
+            if !existing.contains(&u.id) {
+                updates.push(u);
+            }
+        }
     }
 
     Ok(updates)
 }
 
-/// Upgrade a single package by its winget id, waiting for completion so the UI
-/// can mark it done or failed.
+/// Upgrade a single package by id. When `source` is provided (e.g. "msstore"),
+/// we pin winget to that source so Store apps install via the correct
+/// pipeline. Empty source defaults to winget's automatic resolution.
 #[tauri::command]
-pub fn update_app(id: String) -> Result<(), String> {
+pub fn update_app(id: String, source: Option<String>) -> Result<(), String> {
+    let mut args: Vec<String> = vec![
+        "upgrade".into(),
+        "--id".into(),
+        id.clone(),
+        "--exact".into(),
+        "--silent".into(),
+        "--accept-package-agreements".into(),
+        "--accept-source-agreements".into(),
+        "--disable-interactivity".into(),
+    ];
+    if let Some(src) = source.filter(|s| !s.trim().is_empty()) {
+        args.push("--source".into());
+        args.push(src);
+    }
+
     let status = Command::new("winget")
-        .args([
-            "upgrade",
-            "--id",
-            &id,
-            "--exact",
-            "--silent",
-            "--accept-package-agreements",
-            "--accept-source-agreements",
-            "--disable-interactivity",
-        ])
+        .args(&args)
         .status()
         .map_err(|_| "winget is not available on this system".to_string())?;
 

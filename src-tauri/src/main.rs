@@ -10,5 +10,12 @@ fn main() {
         return;
     }
 
+    // Task Scheduler fires the binary with this flag at the user's chosen
+    // weekly time. Run the configured sweep with no window and exit.
+    if args.len() >= 2 && args[1] == "--scheduled-clean" {
+        winsweep_lib::run_scheduled_clean();
+        return;
+    }
+
     winsweep_lib::run()
 }

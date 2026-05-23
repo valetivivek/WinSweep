@@ -1,7 +1,7 @@
 {
   "name": "winsweep",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "package": "npm run package:app",
-    "package:app": "tauri build"
+    "package:app": "tauri build",
+    "site:dev": "vite --config vite.site.config.ts",
+    "site:build": "tsc -p tsconfig.site.json && vite build --config vite.site.config.ts",
+    "site:preview": "vite preview --config vite.site.config.ts"
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.8",

@@ -1,4 +1,4 @@
-import { AppWindow, RefreshCw, Sparkles, Moon, Sun } from "lucide-react";
+import { AppWindow, FolderHeart, RefreshCw, Settings, Sparkles, Moon, Sun } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { PageId } from "../lib/types";
 import { useTheme } from "../lib/theme";
@@ -15,6 +15,8 @@ const NAV: NavItem[] = [
   { id: "installed", label: "Installed Apps", icon: AppWindow, hint: "1" },
   { id: "updates", label: "Updates", icon: RefreshCw, hint: "2" },
   { id: "cleanup", label: "Cleanup", icon: Sparkles, hint: "3" },
+  { id: "app-data", label: "App Data", icon: FolderHeart, hint: "4" },
+  { id: "settings", label: "Settings", icon: Settings, hint: "5" },
 ];
 
 interface SidebarProps {
@@ -107,7 +109,7 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
           {mode === "dark" ? "Light mode" : "Dark mode"}
         </button>
         <div className="mt-2 px-3 text-[10px] uppercase tracking-[0.2em] text-text-faint">
-          v0.1.0
+          v0.2.0
         </div>
       </div>
     </aside>

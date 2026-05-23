@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   Check,
+  ChevronDown,
   Database,
   Eye,
   EyeOff,
@@ -22,11 +23,17 @@ import {
   listIgnored,
   scanResiduals,
 } from "../lib/api";
-import type { ResidualItem, ResidualKind, ResidualLocation } from "../lib/types";
+import type {
+  ResidualCategory,
+  ResidualItem,
+  ResidualKind,
+  ResidualLocation,
+} from "../lib/types";
 import { formatBytes } from "../lib/format";
 import { cn } from "../lib/utils";
 
 type ScanState = "scanning" | "results";
+type CategoryFilter = ResidualCategory | "All";
 
 const SCAN_TARGETS: ResidualLocation[] = [
   "AppData",
@@ -36,10 +43,31 @@ const SCAN_TARGETS: ResidualLocation[] = [
   "Registry",
 ];
 
+const CATEGORIES: ResidualCategory[] = [
+  "Logs",
+  "Cache",
+  "Config",
+  "Data",
+  "Crashes",
+  "Installer",
+  "Other",
+];
+
 const KIND_ICON: Record<ResidualKind, typeof Folder> = {
   folder: Folder,
   file: FileIcon,
   registry: Database,
+};
+
+/* Tailwind tints per category. Kept muted so they read as labels, not alerts. */
+const CATEGORY_TONE: Record<ResidualCategory, string> = {
+  Logs: "bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-300",
+  Cache: "bg-sky-500/10 text-sky-700 border-sky-500/30 dark:text-sky-300",
+  Config: "bg-violet-500/10 text-violet-700 border-violet-500/30 dark:text-violet-300",
+  Data: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-300",
+  Crashes: "bg-rose-500/10 text-rose-700 border-rose-500/30 dark:text-rose-300",
+  Installer: "bg-orange-500/10 text-orange-700 border-orange-500/30 dark:text-orange-300",
+  Other: "bg-surface-active text-text-muted border-border",
 };
 
 export function CleanupPage() {
@@ -48,6 +76,8 @@ export function CleanupPage() {
   const [results, setResults] = useState<ResidualItem[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("All");
+  const [collapsedApps, setCollapsedApps] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +98,8 @@ export function CleanupPage() {
     setResults([]);
     setSelected(new Set());
     setQuery("");
+    setCategoryFilter("All");
+    setCollapsedApps(new Set());
     setError(null);
 
     // Drive an indeterminate-feeling progress bar up to 90% while we wait, so
@@ -104,17 +136,31 @@ export function CleanupPage() {
     [results, selected],
   );
 
+  // Chip counts use unfiltered results so they don't change as you click around.
+  const categoryStats = useMemo(() => {
+    const stats = new Map<CategoryFilter, { count: number; bytes: number }>();
+    const all = { count: results.length, bytes: results.reduce((s, r) => s + r.sizeBytes, 0) };
+    stats.set("All", all);
+    for (const cat of CATEGORIES) {
+      const items = results.filter((r) => r.category === cat);
+      stats.set(cat, { count: items.length, bytes: items.reduce((s, r) => s + r.sizeBytes, 0) });
+    }
+    return stats;
+  }, [results]);
+
   const visibleResults = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return results;
-    const terms = q.split(/\s+/).filter(Boolean);
+    const terms = q ? q.split(/\s+/).filter(Boolean) : [];
     return results.filter((item) => {
+      if (categoryFilter !== "All" && item.category !== categoryFilter) return false;
+      if (terms.length === 0) return true;
       const fileName = residualName(item.path);
       const extension = residualExtension(fileName);
       const searchable = [
         item.relatedTo,
         item.kind,
         item.location,
+        item.category,
         item.path,
         fileName,
         extension,
@@ -126,7 +172,25 @@ export function CleanupPage() {
         .toLowerCase();
       return terms.every((term) => searchable.includes(term));
     });
-  }, [query, results]);
+  }, [query, results, categoryFilter]);
+
+  // Group visible items by inferred app so the user reads "what's leftover for
+  // Slack" rather than scanning a flat list. Largest groups first.
+  const groups = useMemo(() => {
+    const map = new Map<string, ResidualItem[]>();
+    for (const item of visibleResults) {
+      const arr = map.get(item.relatedTo);
+      if (arr) arr.push(item);
+      else map.set(item.relatedTo, [item]);
+    }
+    return Array.from(map.entries())
+      .map(([app, items]) => ({
+        app,
+        items,
+        totalBytes: items.reduce((sum, r) => sum + r.sizeBytes, 0),
+      }))
+      .sort((a, b) => b.totalBytes - a.totalBytes || a.app.localeCompare(b.app));
+  }, [visibleResults]);
 
   const visibleSelectedCount = useMemo(
     () => visibleResults.filter((r) => selected.has(r.id)).length,
@@ -152,6 +216,26 @@ export function CleanupPage() {
       for (const id of visibleIds) {
         allVisibleSelected ? next.delete(id) : next.add(id);
       }
+      return next;
+    });
+  }
+
+  function toggleGroup(items: ResidualItem[]) {
+    setSelected((prev) => {
+      const ids = items.map((r) => r.id);
+      const allSelected = ids.length > 0 && ids.every((id) => prev.has(id));
+      const next = new Set(prev);
+      for (const id of ids) {
+        allSelected ? next.delete(id) : next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function toggleCollapsed(app: string) {
+    setCollapsedApps((prev) => {
+      const next = new Set(prev);
+      next.has(app) ? next.delete(app) : next.add(app);
       return next;
     });
   }
@@ -283,9 +367,14 @@ export function CleanupPage() {
                   </Button>
                 </div>
               </div>
+              <CategoryChips
+                stats={categoryStats}
+                active={categoryFilter}
+                onChange={setCategoryFilter}
+              />
               <div className="flex flex-wrap items-center gap-2 text-[11px] text-text-faint">
                 <span>
-                  {query
+                  {query || categoryFilter !== "All"
                     ? `${visibleResults.length} of ${results.length} orphan item${
                         results.length === 1 ? "" : "s"
                       } shown`
@@ -293,30 +382,57 @@ export function CleanupPage() {
                 </span>
                 {hiddenSelectedCount > 0 && (
                   <span className="rounded border border-warning/40 bg-warning/10 px-2 py-0.5 text-warning">
-                    {hiddenSelectedCount} selected outside this search
+                    {hiddenSelectedCount} selected outside this view
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Results */}
+            {/* Results, grouped by inferred app */}
             <div className="min-h-0 flex-1 overflow-y-auto">
               {visibleResults.length === 0 ? (
-                <NoMatches query={query} />
+                <NoMatches query={query} categoryFilter={categoryFilter} />
               ) : (
-                <ul className="overflow-hidden rounded-lg border border-border bg-surface">
-                  {visibleResults.map((item, i) => (
-                    <ResidualRow
-                      key={item.id}
-                      item={item}
-                      checked={selected.has(item.id)}
-                      divided={i > 0}
-                      index={i}
-                      onToggle={() => toggle(item.id)}
-                      onIgnore={() => ignore(item)}
-                    />
-                  ))}
-                </ul>
+                <div className="space-y-3">
+                  {groups.map((group) => {
+                    const collapsed = collapsedApps.has(group.app);
+                    const groupSelected = group.items.filter((r) => selected.has(r.id)).length;
+                    const allGroupSelected = groupSelected === group.items.length;
+                    const someGroupSelected = groupSelected > 0 && !allGroupSelected;
+                    return (
+                      <section
+                        key={group.app}
+                        className="overflow-hidden rounded-lg border border-border bg-surface"
+                      >
+                        <GroupHeader
+                          app={group.app}
+                          itemCount={group.items.length}
+                          totalBytes={group.totalBytes}
+                          collapsed={collapsed}
+                          allSelected={allGroupSelected}
+                          someSelected={someGroupSelected}
+                          onToggleCollapsed={() => toggleCollapsed(group.app)}
+                          onToggleAll={() => toggleGroup(group.items)}
+                        />
+                        {!collapsed && (
+                          <ul>
+                            {group.items.map((item, i) => (
+                              <ResidualRow
+                                key={item.id}
+                                item={item}
+                                checked={selected.has(item.id)}
+                                divided
+                                index={i}
+                                onToggle={() => toggle(item.id)}
+                                onIgnore={() => ignore(item)}
+                              />
+                            ))}
+                          </ul>
+                        )}
+                      </section>
+                    );
+                  })}
+                </div>
               )}
             </div>
           </>
@@ -396,6 +512,7 @@ function ResidualRow({
         <div className="truncate text-sm font-medium text-text">{item.relatedTo}</div>
         <div className="truncate font-mono text-xs text-text-muted">{item.path}</div>
       </div>
+      <CategoryBadge category={item.category} />
       <LocationBadge location={item.location} />
       <div className="w-16 shrink-0 text-right text-xs tabular-nums text-text-muted">
         {item.kind === "registry" ? "key" : formatBytes(item.sizeBytes)}
@@ -421,6 +538,124 @@ function LocationBadge({ location }: { location: ResidualLocation }) {
     <span className="hidden shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-faint sm:inline">
       {location}
     </span>
+  );
+}
+
+function CategoryBadge({ category }: { category: ResidualCategory }) {
+  return (
+    <span
+      className={cn(
+        "shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+        CATEGORY_TONE[category],
+      )}
+    >
+      {category}
+    </span>
+  );
+}
+
+function CategoryChips({
+  stats,
+  active,
+  onChange,
+}: {
+  stats: Map<CategoryFilter, { count: number; bytes: number }>;
+  active: CategoryFilter;
+  onChange: (next: CategoryFilter) => void;
+}) {
+  // "All" always shows; per-category chips only render when scan found at
+  // least one item in that bucket, so the strip doesn't pad empty noise.
+  const chips: CategoryFilter[] = ["All", ...CATEGORIES.filter((c) => (stats.get(c)?.count ?? 0) > 0)];
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {chips.map((chip) => {
+        const s = stats.get(chip) ?? { count: 0, bytes: 0 };
+        const isActive = chip === active;
+        return (
+          <button
+            key={chip}
+            type="button"
+            onClick={() => onChange(chip)}
+            aria-pressed={isActive}
+            className={cn(
+              "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+              isActive
+                ? "border-accent bg-accent text-accent-foreground"
+                : "border-border bg-surface text-text-muted hover:border-accent/40 hover:text-text",
+            )}
+          >
+            <span>{chip}</span>
+            <span className={cn("tabular-nums", isActive ? "opacity-90" : "text-text-faint")}>
+              {s.count}
+            </span>
+            {s.bytes > 0 && (
+              <span className={cn("tabular-nums", isActive ? "opacity-75" : "text-text-faint")}>
+                · {formatBytes(s.bytes)}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function GroupHeader({
+  app,
+  itemCount,
+  totalBytes,
+  collapsed,
+  allSelected,
+  someSelected,
+  onToggleCollapsed,
+  onToggleAll,
+}: {
+  app: string;
+  itemCount: number;
+  totalBytes: number;
+  collapsed: boolean;
+  allSelected: boolean;
+  someSelected: boolean;
+  onToggleCollapsed: () => void;
+  onToggleAll: () => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 px-4 py-2.5 text-sm",
+        collapsed ? "" : "border-b border-border",
+      )}
+    >
+      <button
+        type="button"
+        onClick={onToggleAll}
+        aria-label={`${allSelected ? "Deselect" : "Select"} all ${itemCount} items for ${app}`}
+        className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded"
+      >
+        <Checkbox checked={allSelected} indeterminate={someSelected} />
+      </button>
+      <button
+        type="button"
+        onClick={onToggleCollapsed}
+        className="flex min-w-0 flex-1 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded"
+        aria-expanded={!collapsed}
+      >
+        <ChevronDown
+          size={14}
+          className={cn(
+            "shrink-0 text-text-muted transition-transform duration-150",
+            collapsed && "-rotate-90",
+          )}
+        />
+        <span className="truncate font-medium text-text">{app}</span>
+        <span className="text-xs text-text-faint">
+          {itemCount} item{itemCount === 1 ? "" : "s"}
+        </span>
+      </button>
+      <span className="shrink-0 text-xs tabular-nums text-text-muted">
+        {totalBytes > 0 ? formatBytes(totalBytes) : "—"}
+      </span>
+    </div>
   );
 }
 
@@ -458,17 +693,21 @@ function Spotless() {
   );
 }
 
-function NoMatches({ query }: { query: string }) {
+function NoMatches({ query, categoryFilter }: { query: string; categoryFilter: CategoryFilter }) {
+  const hasQuery = query.trim().length > 0;
+  const hasCategory = categoryFilter !== "All";
+  const body = hasQuery && hasCategory
+    ? `Nothing in "${categoryFilter}" matched "${query}".`
+    : hasQuery
+      ? `Nothing matched "${query}".`
+      : `No items in the "${categoryFilter}" category.`;
   return (
     <div className="flex min-h-64 flex-col items-center justify-center rounded-lg border border-dashed border-border text-center">
       <div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-active text-text-muted">
         <FileIcon size={21} strokeWidth={2.5} />
       </div>
       <p className="mt-4 text-sm font-medium text-text">No orphan files match</p>
-      <p className="mt-1 max-w-md text-xs text-text-muted">
-        Nothing matched "{query}". Search checks file name, path, extension, location, kind, size,
-        and related app metadata.
-      </p>
+      <p className="mt-1 max-w-md text-xs text-text-muted">{body}</p>
     </div>
   );
 }

@@ -4,9 +4,17 @@ import { DevelopmentNotice } from "./components/development-notice";
 import { InstalledAppsPage } from "./pages/installed-apps";
 import { UpdatesPage } from "./pages/updates";
 import { CleanupPage } from "./pages/cleanup";
+import { AppDataPage } from "./pages/app-data";
+import { SettingsPage } from "./pages/settings";
 import type { PageId } from "./lib/types";
 
-const SHORTCUTS: Record<string, PageId> = { "1": "installed", "2": "updates", "3": "cleanup" };
+const SHORTCUTS: Record<string, PageId> = {
+  "1": "installed",
+  "2": "updates",
+  "3": "cleanup",
+  "4": "app-data",
+  "5": "settings",
+};
 
 function App() {
   const [page, setPage] = useState<PageId>("installed");
@@ -39,6 +47,8 @@ function App() {
           {page === "installed" && <InstalledAppsPage />}
           {page === "updates" && <UpdatesPage />}
           {page === "cleanup" && <CleanupPage />}
+          {page === "app-data" && <AppDataPage />}
+          {page === "settings" && <SettingsPage />}
         </div>
       </main>
     </div>

@@ -1,4 +1,4 @@
-import type { AppUpdate, InstalledApp, ResidualItem } from "./types";
+import type { AppDataEntry, AppUpdate, InstalledApp, ResidualItem, ScheduleConfig } from "./types";
 
 /* Mock data for UI development. Replaced by Tauri commands once the backend
    is wired up. Kept deliberately varied (missing sizes, odd dates) so the UI
@@ -26,22 +26,53 @@ export const MOCK_INSTALLED_APPS: InstalledApp[] = [
 ];
 
 export const MOCK_UPDATES: AppUpdate[] = [
-  { id: "2", name: "Google Chrome", publisher: "Google LLC", currentVersion: "133.0.6943.98", availableVersion: "134.0.6998.36" },
-  { id: "3", name: "Spotify", publisher: "Spotify AB", currentVersion: "1.2.53.440", availableVersion: "1.2.57.463" },
-  { id: "5", name: "Discord", publisher: "Discord Inc.", currentVersion: "1.0.9189", availableVersion: "1.0.9201" },
-  { id: "13", name: "OBS Studio", publisher: "OBS Project", currentVersion: "31.0.1", availableVersion: "31.0.2" },
-  { id: "15", name: "PowerToys", publisher: "Microsoft Corporation", currentVersion: "0.89.0", availableVersion: "0.90.0" },
+  { id: "2", name: "Google Chrome", publisher: "Google LLC", currentVersion: "133.0.6943.98", availableVersion: "134.0.6998.36", source: "winget" },
+  { id: "3", name: "Spotify", publisher: "Spotify AB", currentVersion: "1.2.53.440", availableVersion: "1.2.57.463", source: "msstore" },
+  { id: "5", name: "Discord", publisher: "Discord Inc.", currentVersion: "1.0.9189", availableVersion: "1.0.9201", source: "winget" },
+  { id: "13", name: "OBS Studio", publisher: "OBS Project", currentVersion: "31.0.1", availableVersion: "31.0.2", source: "winget" },
+  { id: "15", name: "PowerToys", publisher: "Microsoft Corporation", currentVersion: "0.89.0", availableVersion: "0.90.0", source: "winget" },
+  { id: "9NCBCSZSJRSB", name: "Microsoft To Do", publisher: "Microsoft Corporation", currentVersion: "2.137.0", availableVersion: "2.139.1", source: "msstore" },
 ];
 
 export const MOCK_RESIDUALS: ResidualItem[] = [
-  { id: "r1", relatedTo: "Adobe Photoshop", kind: "folder", location: "AppData", path: "C:\\Users\\Cricky\\AppData\\Roaming\\Adobe\\Photoshop", sizeBytes: 248_512_512 },
-  { id: "r2", relatedTo: "Slack", kind: "folder", location: "LocalAppData", path: "C:\\Users\\Cricky\\AppData\\Local\\slack\\Cache", sizeBytes: 89_653_248 },
-  { id: "r3", relatedTo: "Epic Games Launcher", kind: "folder", location: "ProgramData", path: "C:\\ProgramData\\Epic\\EpicGamesLauncher", sizeBytes: 412_876_800 },
-  { id: "r4", relatedTo: "Old Java Runtime", kind: "file", location: "Temp", path: "C:\\Users\\Cricky\\AppData\\Local\\Temp\\jre-installer.log", sizeBytes: 2_097_152 },
-  { id: "r5", relatedTo: "uTorrent", kind: "registry", location: "Registry", path: "HKCU\\Software\\uTorrent", sizeBytes: 0 },
-  { id: "r6", relatedTo: "Adobe Photoshop", kind: "registry", location: "Registry", path: "HKCU\\Software\\Adobe\\Photoshop\\26.0", sizeBytes: 0 },
-  { id: "r7", relatedTo: "WinZip", kind: "folder", location: "AppData", path: "C:\\Users\\Cricky\\AppData\\Roaming\\WinZip", sizeBytes: 15_728_640 },
-  { id: "r8", relatedTo: "Skype", kind: "folder", location: "LocalAppData", path: "C:\\Users\\Cricky\\AppData\\Local\\Packages\\Microsoft.SkypeApp", sizeBytes: 134_217_728 },
-  { id: "r9", relatedTo: "Old Driver Cache", kind: "folder", location: "Temp", path: "C:\\Users\\Cricky\\AppData\\Local\\Temp\\nvidia-cache", sizeBytes: 567_328_768 },
-  { id: "r10", relatedTo: "Razer Synapse", kind: "registry", location: "Registry", path: "HKLM\\SOFTWARE\\Razer\\Synapse", sizeBytes: 0 },
+  { id: "r1", relatedTo: "Adobe Photoshop", kind: "folder", location: "AppData", category: "Data", path: "C:\\Users\\Cricky\\AppData\\Roaming\\Adobe\\Photoshop", sizeBytes: 248_512_512 },
+  { id: "r2", relatedTo: "Slack", kind: "folder", location: "LocalAppData", category: "Cache", path: "C:\\Users\\Cricky\\AppData\\Local\\slack\\Cache", sizeBytes: 89_653_248 },
+  { id: "r3", relatedTo: "Epic Games Launcher", kind: "folder", location: "ProgramData", category: "Data", path: "C:\\ProgramData\\Epic\\EpicGamesLauncher", sizeBytes: 412_876_800 },
+  { id: "r4", relatedTo: "Old Java Runtime", kind: "file", location: "Temp", category: "Logs", path: "C:\\Users\\Cricky\\AppData\\Local\\Temp\\jre-installer.log", sizeBytes: 2_097_152 },
+  { id: "r5", relatedTo: "uTorrent", kind: "registry", location: "Registry", category: "Config", path: "HKCU\\Software\\uTorrent", sizeBytes: 0 },
+  { id: "r6", relatedTo: "Adobe Photoshop", kind: "registry", location: "Registry", category: "Config", path: "HKCU\\Software\\Adobe\\Photoshop\\26.0", sizeBytes: 0 },
+  { id: "r7", relatedTo: "WinZip", kind: "folder", location: "AppData", category: "Data", path: "C:\\Users\\Cricky\\AppData\\Roaming\\WinZip", sizeBytes: 15_728_640 },
+  { id: "r8", relatedTo: "Skype", kind: "folder", location: "LocalAppData", category: "Data", path: "C:\\Users\\Cricky\\AppData\\Local\\Packages\\Microsoft.SkypeApp", sizeBytes: 134_217_728 },
+  { id: "r9", relatedTo: "Old Driver Cache", kind: "folder", location: "Temp", category: "Cache", path: "C:\\Users\\Cricky\\AppData\\Local\\Temp\\nvidia-cache", sizeBytes: 567_328_768 },
+  { id: "r10", relatedTo: "Razer Synapse", kind: "registry", location: "Registry", category: "Config", path: "HKLM\\SOFTWARE\\Razer\\Synapse", sizeBytes: 0 },
+  { id: "r11", relatedTo: "Discord", kind: "folder", location: "LocalAppData", category: "Logs", path: "C:\\Users\\Cricky\\AppData\\Local\\Discord\\logs", sizeBytes: 18_874_368 },
+  { id: "r12", relatedTo: "Visual Studio", kind: "folder", location: "LocalAppData", category: "Crashes", path: "C:\\Users\\Cricky\\AppData\\Local\\CrashDumps", sizeBytes: 312_572_416 },
+  { id: "r13", relatedTo: "Chrome", kind: "file", location: "Temp", category: "Installer", path: "C:\\Users\\Cricky\\AppData\\Local\\Temp\\chrome_installer.exe", sizeBytes: 78_643_200 },
+  { id: "r14", relatedTo: "Spotify", kind: "folder", location: "LocalAppData", category: "Cache", path: "C:\\Users\\Cricky\\AppData\\Local\\Spotify\\Storage", sizeBytes: 1_073_741_824 },
+  { id: "r15", relatedTo: "Slack", kind: "folder", location: "LocalAppData", category: "Logs", path: "C:\\Users\\Cricky\\AppData\\Local\\slack\\logs", sizeBytes: 5_242_880 },
+  { id: "r16", relatedTo: "Old Java Runtime", kind: "file", location: "Temp", category: "Logs", path: "C:\\Users\\Cricky\\AppData\\Local\\Temp\\java_install.log", sizeBytes: 524_288 },
 ];
+
+const dayAgo = (days: number) => Math.floor((Date.now() - days * 86400_000) / 1000);
+
+export const MOCK_APP_DATA: AppDataEntry[] = [
+  { id: "ad1", relatedTo: "Discord", location: "LocalAppData", path: "C:\\Users\\Cricky\\AppData\\Local\\Discord", sizeBytes: 412_876_800, lastModifiedUnix: dayAgo(1) },
+  { id: "ad2", relatedTo: "Spotify", location: "AppData", path: "C:\\Users\\Cricky\\AppData\\Roaming\\Spotify", sizeBytes: 1_287_651_328, lastModifiedUnix: dayAgo(0) },
+  { id: "ad3", relatedTo: "Visual Studio Code", location: "AppData", path: "C:\\Users\\Cricky\\AppData\\Roaming\\Code", sizeBytes: 248_512_512, lastModifiedUnix: dayAgo(2) },
+  { id: "ad4", relatedTo: "Notion", location: "AppData", path: "C:\\Users\\Cricky\\AppData\\Roaming\\Notion", sizeBytes: 89_653_248, lastModifiedUnix: dayAgo(5) },
+  { id: "ad5", relatedTo: "Steam", location: "LocalAppData", path: "C:\\Users\\Cricky\\AppData\\Local\\Steam", sizeBytes: 4_509_715_660, lastModifiedUnix: dayAgo(0) },
+  { id: "ad6", relatedTo: "Figma", location: "LocalAppData", path: "C:\\Users\\Cricky\\AppData\\Local\\Figma", sizeBytes: 312_572_416, lastModifiedUnix: dayAgo(3) },
+  { id: "ad7", relatedTo: "Zoom Workplace", location: "AppData", path: "C:\\Users\\Cricky\\AppData\\Roaming\\Zoom", sizeBytes: 567_328_768, lastModifiedUnix: dayAgo(42) },
+  { id: "ad8", relatedTo: "OBS Studio", location: "AppData", path: "C:\\Users\\Cricky\\AppData\\Roaming\\obs-studio", sizeBytes: 134_217_728, lastModifiedUnix: dayAgo(14) },
+  { id: "ad9", relatedTo: "PowerToys", location: "LocalAppData", path: "C:\\Users\\Cricky\\AppData\\Local\\Microsoft\\PowerToys", sizeBytes: 45_088_768, lastModifiedUnix: dayAgo(7) },
+];
+
+export const MOCK_SCHEDULE: ScheduleConfig = {
+  enabled: false,
+  dayOfWeek: "SUN",
+  hour: 3,
+  minute: 0,
+  cleanTemp: true,
+  cleanRecycleBin: true,
+  cleanCaches: false,
+};

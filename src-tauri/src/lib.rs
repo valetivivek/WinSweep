@@ -1,8 +1,11 @@
+mod app_data;
 mod apps;
 mod cleanup;
+mod schedule;
 mod updates;
 
 pub use cleanup::run_elevated_delete;
+pub use schedule::run_scheduled_clean;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -20,6 +23,12 @@ pub fn run() {
             cleanup::list_ignored,
             cleanup::add_ignored,
             cleanup::clear_ignored,
+            app_data::list_app_data,
+            app_data::delete_app_data,
+            app_data::open_app_data,
+            schedule::get_schedule,
+            schedule::set_schedule,
+            schedule::get_last_scheduled_run,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

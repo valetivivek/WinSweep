@@ -35,10 +35,10 @@ export function UpdatesPage() {
   );
   const busy = Object.values(statuses).some((s) => s === "updating");
 
-  const update = useCallback(async (id: string) => {
+  const update = useCallback(async (id: string, source: string) => {
     setStatuses((s) => ({ ...s, [id]: "updating" }));
     try {
-      await updateApp(id);
+      await updateApp(id, source);
       setStatuses((s) => ({ ...s, [id]: "done" }));
     } catch {
       setStatuses((s) => ({ ...s, [id]: "failed" }));
@@ -49,7 +49,7 @@ export function UpdatesPage() {
     // Sequential, mirroring how winget processes upgrades one at a time.
     for (const u of updates) {
       if (statuses[u.id] === "done" || statuses[u.id] === "updating") continue;
-      await update(u.id);
+      await update(u.id, u.source);
     }
   }, [updates, statuses, update]);
 
@@ -98,7 +98,7 @@ export function UpdatesPage() {
                 status={statuses[u.id] ?? "idle"}
                 divided={i > 0}
                 index={i}
-                onUpdate={() => update(u.id)}
+                onUpdate={() => update(u.id, u.source)}
               />
             ))}
           </ul>
@@ -135,7 +135,10 @@ function UpdateRow({
     >
       {/* Identity */}
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-text">{update.name}</div>
+        <div className="flex items-center gap-2">
+          <span className="truncate text-sm font-medium text-text">{update.name}</span>
+          {update.source.toLowerCase() === "msstore" && <SourceBadge label="Store" />}
+        </div>
         <div className="truncate text-xs text-text-muted">{update.publisher}</div>
       </div>
 
@@ -179,6 +182,14 @@ function UpdateRow({
         </span>
       )}
     </li>
+  );
+}
+
+function SourceBadge({ label }: { label: string }) {
+  return (
+    <span className="shrink-0 rounded border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-sky-700 dark:text-sky-300">
+      {label}
+    </span>
   );
 }
 

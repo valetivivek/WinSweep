@@ -1,7 +1,40 @@
 /* Shared domain types. These mirror the shapes the Rust commands will return,
    so the UI can be built against mocks now and wired to invoke() later. */
 
-export type PageId = "installed" | "updates" | "cleanup";
+export type PageId = "installed" | "updates" | "cleanup" | "app-data" | "settings";
+
+export interface AppDataEntry {
+  id: string;
+  /** Display name of the installed app this folder belongs to. */
+  relatedTo: string;
+  /** "AppData" | "LocalAppData" | "ProgramData". */
+  location: "AppData" | "LocalAppData" | "ProgramData";
+  path: string;
+  sizeBytes: number;
+  /** Last-modified time as Unix seconds, or null when unreadable. */
+  lastModifiedUnix: number | null;
+}
+
+export interface AppDataDeleteReport {
+  deletedPaths: string[];
+  errors: string[];
+}
+
+export interface ScheduleConfig {
+  enabled: boolean;
+  /** "MON" through "SUN" — matches schtasks /D values exactly. */
+  dayOfWeek: "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
+  hour: number;
+  minute: number;
+  cleanTemp: boolean;
+  cleanRecycleBin: boolean;
+  cleanCaches: boolean;
+}
+
+export interface ScheduleResult {
+  success: boolean;
+  message: string;
+}
 
 export interface InstalledApp {
   id: string;
@@ -28,6 +61,8 @@ export interface AppUpdate {
   publisher: string;
   currentVersion: string;
   availableVersion: string;
+  /** Where the upgrade comes from: "winget", "msstore", or another source. */
+  source: string;
 }
 
 export type UpdateStatus = "idle" | "updating" | "done" | "failed";
@@ -41,12 +76,25 @@ export type ResidualLocation =
   | "Temp"
   | "Registry";
 
+/** Heuristic classification of what a leftover *is*, independent of where it
+ * lives. Lets the UI group "logs across every app" or "all caches" instead of
+ * making the user read paths. */
+export type ResidualCategory =
+  | "Logs"
+  | "Cache"
+  | "Config"
+  | "Data"
+  | "Crashes"
+  | "Installer"
+  | "Other";
+
 export interface ResidualItem {
   id: string;
   /** App or vendor the leftover is associated with. */
   relatedTo: string;
   kind: ResidualKind;
   location: ResidualLocation;
+  category: ResidualCategory;
   /** Full path or registry key. */
   path: string;
   /** Reclaimable size in bytes. Registry keys report 0. */

@@ -1,6 +1,21 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { AppUpdate, DeleteReport, InstalledApp, ResidualItem } from "./types";
-import { MOCK_INSTALLED_APPS, MOCK_RESIDUALS, MOCK_UPDATES } from "./mock-data";
+import type {
+  AppDataDeleteReport,
+  AppDataEntry,
+  AppUpdate,
+  DeleteReport,
+  InstalledApp,
+  ResidualItem,
+  ScheduleConfig,
+  ScheduleResult,
+} from "./types";
+import {
+  MOCK_APP_DATA,
+  MOCK_INSTALLED_APPS,
+  MOCK_RESIDUALS,
+  MOCK_SCHEDULE,
+  MOCK_UPDATES,
+} from "./mock-data";
 
 /* The single boundary between the UI and the Rust backend. Every page goes
    through here. When the app runs inside Tauri we call real commands; in a
@@ -51,12 +66,12 @@ export async function listUpdates(): Promise<AppUpdate[]> {
   return invoke<AppUpdate[]>("list_updates");
 }
 
-export async function updateApp(id: string): Promise<void> {
+export async function updateApp(id: string, source?: string): Promise<void> {
   if (!isTauri()) {
     await delay(1100 + Math.random() * 900);
     return;
   }
-  await invoke("update_app", { id });
+  await invoke("update_app", { id, source });
 }
 
 export async function scanResiduals(): Promise<ResidualItem[]> {
@@ -89,4 +104,46 @@ export async function addIgnored(paths: string[]): Promise<void> {
 export async function clearIgnored(): Promise<void> {
   if (!isTauri()) return;
   await invoke("clear_ignored");
+}
+
+export async function listAppData(): Promise<AppDataEntry[]> {
+  if (!isTauri()) {
+    await delay(450);
+    return MOCK_APP_DATA;
+  }
+  return invoke<AppDataEntry[]>("list_app_data");
+}
+
+export async function deleteAppData(paths: string[]): Promise<AppDataDeleteReport> {
+  if (!isTauri()) {
+    await delay(400);
+    return { deletedPaths: paths, errors: [] };
+  }
+  return invoke<AppDataDeleteReport>("delete_app_data", { paths });
+}
+
+export async function openAppData(path: string): Promise<void> {
+  if (!isTauri()) return;
+  await invoke("open_app_data", { path });
+}
+
+export async function getSchedule(): Promise<ScheduleConfig> {
+  if (!isTauri()) {
+    await delay(150);
+    return MOCK_SCHEDULE;
+  }
+  return invoke<ScheduleConfig>("get_schedule");
+}
+
+export async function setSchedule(config: ScheduleConfig): Promise<ScheduleResult> {
+  if (!isTauri()) {
+    await delay(250);
+    return { success: true, message: config.enabled ? "Scheduled (mock)" : "Disabled (mock)" };
+  }
+  return invoke<ScheduleResult>("set_schedule", { cfg: config });
+}
+
+export async function getLastScheduledRun(): Promise<string | null> {
+  if (!isTauri()) return null;
+  return invoke<string | null>("get_last_scheduled_run");
 }

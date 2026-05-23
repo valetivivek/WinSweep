@@ -21,6 +21,10 @@ pub struct ResidualItem {
     pub related_to: String,
     pub kind: String,     // "folder" | "file" | "registry"
     pub location: String, // "AppData" | "LocalAppData" | "ProgramData" | "Temp" | "Registry"
+    /// Heuristic classification so the UI can group by what the leftover is,
+    /// not just where it lives: "Logs" | "Cache" | "Config" | "Data" |
+    /// "Crashes" | "Installer" | "Other".
+    pub category: String,
     pub path: String,
     pub size_bytes: u64,
 }
@@ -44,7 +48,7 @@ const DENYLIST: &[&str] = &[
 
 /// Lowercased alphanumeric tokens of length >= 3, used to match folder names
 /// against installed apps and to filter the denylist.
-fn tokens(s: &str) -> HashSet<String> {
+pub(crate) fn tokens(s: &str) -> HashSet<String> {
     s.to_lowercase()
         .split(|c: char| !c.is_ascii_alphanumeric())
         .filter(|t| t.len() >= 3)
@@ -54,7 +58,7 @@ fn tokens(s: &str) -> HashSet<String> {
 
 /// Sum the size of a file, or recursively of a directory. Bounded by depth to
 /// avoid pathological traversals; symlinks are not followed.
-fn entry_size(path: &Path, depth: u32) -> u64 {
+pub(crate) fn entry_size(path: &Path, depth: u32) -> u64 {
     let meta = match fs::symlink_metadata(path) {
         Ok(m) => m,
         Err(_) => return 0,
@@ -77,8 +81,109 @@ fn entry_size(path: &Path, depth: u32) -> u64 {
     0
 }
 
-fn env_dir(var: &str) -> Option<PathBuf> {
+pub(crate) fn env_dir(var: &str) -> Option<PathBuf> {
     std::env::var_os(var).map(PathBuf::from).filter(|p| p.exists())
+}
+
+/// Look at up to 20 entries inside a folder and return the dominant category
+/// hint if more than half of them point the same way. Used to classify orphan
+/// folders whose name itself reveals nothing (e.g. an app's data root).
+fn sample_folder_category(path: &Path) -> Option<&'static str> {
+    let entries: Vec<_> = fs::read_dir(path).ok()?.flatten().take(20).collect();
+    if entries.is_empty() {
+        return None;
+    }
+    let mut log = 0;
+    let mut cache = 0;
+    let mut crash = 0;
+    for entry in &entries {
+        let n = entry.file_name().to_string_lossy().to_lowercase();
+        if n.ends_with(".log") || n == "logs" || n == "log" {
+            log += 1;
+        }
+        if n.contains("cache") {
+            cache += 1;
+        }
+        if n.contains("crash") || n.ends_with(".dmp") || n.ends_with(".mdmp") {
+            crash += 1;
+        }
+    }
+    let total = entries.len();
+    if log * 2 > total {
+        return Some("Logs");
+    }
+    if cache * 2 > total {
+        return Some("Cache");
+    }
+    if crash * 2 > total {
+        return Some("Crashes");
+    }
+    None
+}
+
+/// Classify a residual so the UI can group "Logs across every app" or "all
+/// the caches" without the user having to read paths. Inference order:
+/// registry → keyword in path/name → file extension → folder content sample
+/// → default "Data".
+fn categorize(path: &Path, kind: &str) -> String {
+    if kind == "registry" {
+        return "Config".into();
+    }
+
+    let full = path.to_string_lossy().to_lowercase();
+    let name = path
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+
+    if name.contains("cache")
+        || full.contains("\\cache\\")
+        || full.contains("\\caches\\")
+        || full.contains("\\code cache\\")
+        || full.contains("\\gpucache\\")
+    {
+        return "Cache".into();
+    }
+    if name.contains("crash")
+        || name.contains("dump")
+        || full.contains("\\crashpad\\")
+        || full.contains("\\crashreports\\")
+        || full.contains("\\crashdumps\\")
+    {
+        return "Crashes".into();
+    }
+    if name == "logs" || name == "log" || full.contains("\\logs\\") || full.contains("\\log\\") {
+        return "Logs".into();
+    }
+
+    if kind == "file" {
+        let ext = path
+            .extension()
+            .and_then(|s| s.to_str())
+            .map(|s| s.to_lowercase())
+            .unwrap_or_default();
+        match ext.as_str() {
+            "log" => return "Logs".into(),
+            "dmp" | "mdmp" => return "Crashes".into(),
+            "tmp" | "thumbcache" => return "Cache".into(),
+            "cache" => return "Cache".into(),
+            "msi" | "msu" => return "Installer".into(),
+            "exe" if name.contains("install") || name.contains("setup") => {
+                return "Installer".into();
+            }
+            "ini" | "cfg" | "conf" | "yaml" | "yml" | "toml" => return "Config".into(),
+            _ => {}
+        }
+    }
+
+    if kind == "folder" {
+        if let Some(c) = sample_folder_category(path) {
+            return c.into();
+        }
+    }
+
+    "Data".into()
 }
 
 /// Collect tokens from every installed app (names, publishers, install folder
@@ -132,11 +237,13 @@ fn scan_data_root(
         if is_known_or_system(&name, installed) {
             continue;
         }
+        let category = categorize(&path, "folder");
         out.push(ResidualItem {
             id: path.to_string_lossy().into_owned(),
             related_to: name,
             kind: "folder".into(),
             location: location.into(),
+            category,
             path: path.to_string_lossy().into_owned(),
             size_bytes: entry_size(&path, 0),
         });
@@ -159,11 +266,14 @@ fn scan_temp(out: &mut Vec<ResidualItem>) {
             Some(n) => n.to_string(),
             None => continue,
         };
+        let kind = if path.is_dir() { "folder" } else { "file" };
+        let category = categorize(&path, kind);
         out.push(ResidualItem {
             id: path.to_string_lossy().into_owned(),
             related_to: name,
-            kind: if path.is_dir() { "folder".into() } else { "file".into() },
+            kind: kind.into(),
             location: "Temp".into(),
+            category,
             path: path.to_string_lossy().into_owned(),
             size_bytes: entry_size(&path, 0),
         });
@@ -191,6 +301,7 @@ fn scan_registry(installed: &HashSet<String>, out: &mut Vec<ResidualItem>) {
             related_to: name,
             kind: "registry".into(),
             location: "Registry".into(),
+            category: "Config".into(),
             path: full,
             size_bytes: 0,
         });
@@ -270,7 +381,7 @@ pub fn scan_residuals() -> Result<Vec<ResidualItem>, String> {
 
 /// True when `path` resolves to a location inside one of the cleanup roots. This
 /// is the guard that prevents deletion of anything outside the scanned areas.
-fn within_allowed_root(path: &Path) -> bool {
+pub(crate) fn within_allowed_root(path: &Path) -> bool {
     let roots = ["APPDATA", "LOCALAPPDATA", "PROGRAMDATA", "TEMP"];
     let canonical = match fs::canonicalize(path) {
         Ok(p) => p,
@@ -283,7 +394,7 @@ fn within_allowed_root(path: &Path) -> bool {
     })
 }
 
-fn delete_path(path: &str) -> Result<(), String> {
+pub(crate) fn delete_path(path: &str) -> Result<(), String> {
     let p = Path::new(path);
     if !within_allowed_root(p) {
         return Err(format!("Refused: {path} is outside the cleanup roots"));
