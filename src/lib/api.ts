@@ -5,6 +5,7 @@ import type {
   AppUpdate,
   DeleteReport,
   InstalledApp,
+  QuickSweepReport,
   ResidualItem,
   ScheduleConfig,
   ScheduleResult,
@@ -146,4 +147,17 @@ export async function setSchedule(config: ScheduleConfig): Promise<ScheduleResul
 export async function getLastScheduledRun(): Promise<string | null> {
   if (!isTauri()) return null;
   return invoke<string | null>("get_last_scheduled_run");
+}
+
+export async function quickSweep(): Promise<QuickSweepReport> {
+  if (!isTauri()) {
+    await delay(900);
+    return {
+      tempItems: 42,
+      recycleBinEmptied: true,
+      cacheItems: 0,
+      message: "Temp: 42 items; Recycle Bin emptied (mock)",
+    };
+  }
+  return invoke<QuickSweepReport>("quick_sweep");
 }

@@ -36,6 +36,14 @@ export interface ScheduleResult {
   message: string;
 }
 
+export interface QuickSweepReport {
+  tempItems: number;
+  recycleBinEmptied: boolean;
+  cacheItems: number;
+  /** Human-readable summary, safe to show in a sidebar inline note. */
+  message: string;
+}
+
 export interface InstalledApp {
   id: string;
   name: string;

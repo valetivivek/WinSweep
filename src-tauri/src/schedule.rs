@@ -49,6 +49,16 @@ pub struct ScheduleResult {
     pub message: String,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QuickSweepReport {
+    pub temp_items: usize,
+    pub recycle_bin_emptied: bool,
+    pub cache_items: usize,
+    /// Human-readable summary suitable for a sidebar inline note.
+    pub message: String,
+}
+
 fn config_path() -> Option<PathBuf> {
     let base = std::env::var_os("APPDATA").map(PathBuf::from)?;
     Some(base.join("WinSweep").join("schedule.json"))
@@ -148,6 +158,58 @@ pub fn get_last_scheduled_run() -> Option<String> {
     fs::read_to_string(&path).ok().map(|s| s.trim().to_string())
 }
 
+/// Run each enabled category and return a structured report. Honors the
+/// per-category booleans but ignores `cfg.enabled`, so both the scheduled
+/// task (which gates on `enabled` itself) and the on-demand Quick Sweep
+/// button (which does not) can share this logic.
+fn perform_sweep(cfg: &ScheduleConfig) -> QuickSweepReport {
+    let mut parts: Vec<String> = Vec::new();
+
+    let temp_items = if cfg.clean_temp {
+        let n = sweep_temp();
+        parts.push(format!("Temp: {n} items"));
+        n
+    } else {
+        0
+    };
+
+    let recycle_bin_emptied = if cfg.clean_recycle_bin {
+        match empty_recycle_bin() {
+            Ok(()) => {
+                parts.push("Recycle Bin emptied".into());
+                true
+            }
+            Err(e) => {
+                parts.push(format!("Recycle Bin: {e}"));
+                false
+            }
+        }
+    } else {
+        false
+    };
+
+    let cache_items = if cfg.clean_caches {
+        let n = sweep_caches();
+        parts.push(format!("Caches: {n} items"));
+        n
+    } else {
+        0
+    };
+
+    let message = if parts.is_empty() {
+        "Nothing was cleaned. Open Settings to choose categories.".into()
+    } else {
+        parts.join("; ")
+    };
+
+    QuickSweepReport {
+        temp_items,
+        recycle_bin_emptied,
+        cache_items,
+        message,
+    }
+}
+
 /// The entry point invoked when the binary is relaunched with
 /// `--scheduled-clean`. Reads the saved config and performs each enabled
 /// sweep, with no UI. Touches only paths inside the cleanup-allowed roots.
@@ -157,22 +219,7 @@ pub fn run_scheduled_clean() {
         return;
     }
 
-    let mut summary = Vec::new();
-
-    if cfg.clean_temp {
-        let n = sweep_temp();
-        summary.push(format!("Temp: {n} items"));
-    }
-    if cfg.clean_recycle_bin {
-        match empty_recycle_bin() {
-            Ok(()) => summary.push("Recycle Bin emptied".into()),
-            Err(e) => summary.push(format!("Recycle Bin: {e}")),
-        }
-    }
-    if cfg.clean_caches {
-        let n = sweep_caches();
-        summary.push(format!("Caches: {n} items"));
-    }
+    let report = perform_sweep(&cfg);
 
     // Stamp the run so the UI can show "last ran on …".
     if let Some(path) = last_run_path() {
@@ -180,8 +227,18 @@ pub fn run_scheduled_clean() {
             let _ = fs::create_dir_all(parent);
         }
         let now = chrono_like_now();
-        let _ = fs::write(&path, format!("{now}\n{}", summary.join("; ")));
+        let _ = fs::write(&path, format!("{now}\n{}", report.message));
     }
+}
+
+/// On-demand sweep fired from the sidebar Quick Sweep button. Uses the saved
+/// Settings config to decide what to clean (Temp / Recycle Bin / caches),
+/// bypassing the `enabled` flag, and returns the report so the UI can show
+/// a summary inline.
+#[tauri::command]
+pub fn quick_sweep() -> Result<QuickSweepReport, String> {
+    let cfg = get_schedule();
+    Ok(perform_sweep(&cfg))
 }
 
 /// Emit an ISO-ish timestamp without pulling in a date crate. Format:

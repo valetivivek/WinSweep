@@ -29,6 +29,7 @@ pub fn run() {
             schedule::get_schedule,
             schedule::set_schedule,
             schedule::get_last_scheduled_run,
+            schedule::quick_sweep,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
