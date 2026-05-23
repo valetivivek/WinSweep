@@ -1,0 +1,71 @@
+name: Bug report
+description: Something in WinSweep doesn't work the way it should.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please include enough detail
+        that someone else can reproduce what you saw.
+
+  - type: input
+    id: version
+    attributes:
+      label: WinSweep version
+      description: Shown in the sidebar footer (for example, v0.2.0).
+      placeholder: v0.2.0
+    validations:
+      required: true
+
+  - type: input
+    id: windows-version
+    attributes:
+      label: Windows version
+      description: Run `winver` to find this.
+      placeholder: Windows 11 23H2 (build 22631.3447)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: page
+    attributes:
+      label: Which page were you on?
+      options:
+        - Installed Apps
+        - Updates
+        - Cleanup
+        - App Data
+        - Settings
+        - Not page-specific
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you see, and what did you expect to see instead?
+      placeholder: |
+        1. Opened the Cleanup page.
+        2. Clicked "Delete selected".
+        3. Expected: items disappear from the list.
+        4. Actual: the dialog stayed open and nothing was deleted.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error message or screenshot
+      description: Paste any error text from the UI, or drag in a screenshot. Optional but very helpful.
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues and this isn't a duplicate.
+          required: true
+        - label: I'm running the latest released version, or I've explained which version I'm on above.
+          required: true

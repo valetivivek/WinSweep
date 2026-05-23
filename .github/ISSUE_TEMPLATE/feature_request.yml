@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest a new capability or an improvement to an existing one.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: WinSweep is intentionally focused. Features outside the
+        current scope (Windows 11, no telemetry, no auto-delete, GitHub-only
+        distribution) are unlikely to land.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the real situation, not just the feature you want.
+      placeholder: When I uninstall an app, its scheduled tasks stay behind and run forever.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would solve it?
+      description: How could WinSweep help? Sketch the UI and behaviour if you can.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      description: Existing tools, manual workarounds, or other designs you ruled out.
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: This fits WinSweep's scope (Windows 11, local-only, review-before-delete).
+          required: true
