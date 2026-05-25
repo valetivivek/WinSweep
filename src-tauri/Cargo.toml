@@ -1,6 +1,6 @@
 [package]
 name = "winsweep"
-version = "0.2.0"
+version = "0.3.0"
 description = "Manage installed software, keep it updated, and clean up leftover files on Windows."
 authors = ["WinSweep"]
 edition = "2021"

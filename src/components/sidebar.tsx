@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
   AppWindow,
+  BrushCleaning,
   FolderHeart,
   Loader2,
   Moon,
   RefreshCw,
   Settings,
-  Sparkles,
   Sun,
   Wind,
 } from "lucide-react";
@@ -27,7 +27,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { id: "installed", label: "Installed Apps", icon: AppWindow, hint: "1" },
   { id: "updates", label: "Updates", icon: RefreshCw, hint: "2" },
-  { id: "cleanup", label: "Cleanup", icon: Sparkles, hint: "3" },
+  { id: "cleanup", label: "Cleanup", icon: BrushCleaning, hint: "3" },
   { id: "app-data", label: "App Data", icon: FolderHeart, hint: "4" },
   { id: "settings", label: "Settings", icon: Settings, hint: "5" },
 ];
@@ -59,7 +59,15 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
 
   return (
     <>
-      <aside className="flex h-full w-60 flex-col border-r border-border bg-sidebar">
+      <aside
+        className="relative flex h-full w-60 flex-col bg-sidebar"
+        style={{
+          maskImage:
+            "linear-gradient(to right, black 0, black calc(100% - 22px), transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to right, black 0, black calc(100% - 22px), transparent 100%)",
+        }}
+      >
         {/* Brand */}
         <div className="px-5 pb-5 pt-7">
           <div className="flex items-baseline gap-1.5">
@@ -81,18 +89,24 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 className={cn(
-                  "group flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-[background-color,color,box-shadow] duration-150",
+                  "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-[background-color,color] duration-150",
                   isActive
-                    ? "bg-accent font-semibold text-accent-contrast shadow-sm shadow-accent/30"
+                    ? "bg-accent-soft font-semibold text-text"
                     : "text-text-muted hover:bg-surface-hover hover:text-text",
                 )}
               >
+                {isActive && (
+                  <span
+                    aria-hidden
+                    className="ws-living-dot pointer-events-none absolute left-0 top-1/2 h-1.5 w-1.5 -translate-x-2 -translate-y-1/2 rounded-full bg-accent"
+                  />
+                )}
                 <Icon
                   size={17}
                   strokeWidth={2}
                   className={cn(
                     "transition-transform duration-150",
-                    !isActive && "group-hover:scale-110",
+                    isActive ? "text-accent" : "group-hover:scale-110",
                   )}
                 />
                 <span className="flex-1 text-left">{item.label}</span>
@@ -100,7 +114,7 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
                   className={cn(
                     "rounded border px-1.5 text-[10px] font-medium leading-[1.35]",
                     isActive
-                      ? "border-accent-contrast/30 text-accent-contrast/75"
+                      ? "border-accent/40 text-accent"
                       : "border-border text-text-faint",
                   )}
                 >
@@ -169,7 +183,7 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
             {mode === "dark" ? "Light mode" : "Dark mode"}
           </button>
           <div className="mt-2 px-3 text-[10px] uppercase tracking-[0.2em] text-text-faint">
-            v0.2.0
+            v0.3.0
           </div>
         </div>
       </aside>

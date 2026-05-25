@@ -75,6 +75,16 @@ export interface AppUpdate {
 
 export type UpdateStatus = "idle" | "updating" | "done" | "failed";
 
+export interface WindowsUpdate {
+  id: string;
+  title: string;
+  /** "KBxxxxxxx" when WUA exposes one, empty string otherwise. */
+  kb: string;
+  sizeBytes: number;
+  /** "Critical" | "Important" | "Moderate" | "Low" | "" from MSRC. */
+  severity: string;
+}
+
 export type ResidualKind = "folder" | "file" | "registry";
 
 export type ResidualLocation =

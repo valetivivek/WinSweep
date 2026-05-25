@@ -18,6 +18,8 @@ pub fn run() {
             apps::app_icons,
             updates::list_updates,
             updates::update_app,
+            updates::list_windows_updates,
+            updates::open_windows_update_settings,
             cleanup::scan_residuals,
             cleanup::delete_residuals,
             cleanup::list_ignored,

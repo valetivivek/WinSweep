@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { ExternalLink, FolderOpen, Loader2, RotateCw, Trash2 } from "lucide-react";
-import { PageHeader } from "../components/page-header";
+import { HeroChip, PageHeader } from "../components/page-header";
 import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
 import { ConfirmDialog } from "../components/ui/confirm-dialog";
 import { SearchInput } from "../components/ui/search-input";
+import { SkeletonRows } from "../components/ui/skeleton";
 import { deleteAppData, listAppData, openAppData } from "../lib/api";
 import type { AppDataEntry } from "../lib/types";
 import { formatBytes } from "../lib/format";
@@ -122,6 +123,16 @@ export function AppDataPage() {
             ? "Scanning AppData and ProgramData for known apps"
             : `${entries.length} folder${entries.length === 1 ? "" : "s"} · ${formatBytes(totalBytes)} total`
         }
+        hero={{
+          metric: loading ? "--" : entries.length.toString(),
+          label: "AppData · Live",
+          chips: (
+            <>
+              <HeroChip>{loading ? "Scanning" : `${visible.length} visible`}</HeroChip>
+              {!loading && <HeroChip>{formatBytes(totalBytes)}</HeroChip>}
+            </>
+          ),
+        }}
         actions={
           <Button variant="default" onClick={load} disabled={loading || deleting}>
             <RotateCw size={15} className={loading ? "animate-spin" : undefined} />
@@ -138,7 +149,9 @@ export function AppDataPage() {
         )}
 
         {loading ? (
-          <Loading />
+          <div className="ws-membrane overflow-hidden rounded-lg bg-surface">
+            <SkeletonRows count={8} />
+          </div>
         ) : entries.length === 0 ? (
           <Empty />
         ) : (
@@ -177,7 +190,7 @@ export function AppDataPage() {
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <ul className="overflow-hidden rounded-lg border border-border bg-surface">
+              <ul className="ws-membrane overflow-hidden rounded-lg bg-surface">
                 {visible.map((entry, i) => (
                   <AppDataRow
                     key={entry.id}
@@ -237,7 +250,7 @@ function AppDataRow({
       aria-pressed={checked}
       aria-label={`${checked ? "Deselect" : "Select"} ${entry.relatedTo}`}
       className={cn(
-        "ws-row group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/40",
+        "ws-row ws-vein group relative flex cursor-pointer items-center gap-6 px-4 py-3 transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/40",
         divided && "border-t border-border",
       )}
       onClick={onToggle}
@@ -259,10 +272,10 @@ function AppDataRow({
       <span className="hidden shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-faint sm:inline">
         {entry.location}
       </span>
-      <div className="w-24 shrink-0 text-right text-xs tabular-nums text-text-muted">
+      <div className="w-24 shrink-0 text-left text-xs tabular-nums text-text-muted">
         {formatModified(entry.lastModifiedUnix)}
       </div>
-      <div className="w-20 shrink-0 text-right text-xs tabular-nums text-text-muted">
+      <div className="w-20 shrink-0 text-left text-xs tabular-nums text-text-muted">
         {formatBytes(entry.sizeBytes)}
       </div>
       <button
@@ -273,7 +286,7 @@ function AppDataRow({
           e.stopPropagation();
           onOpen();
         }}
-        className="shrink-0 rounded p-1 text-text-faint opacity-0 transition-[opacity,color] hover:text-text group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        className="pointer-events-none absolute inset-y-0 right-3 flex items-center bg-gradient-to-l from-surface-hover via-surface-hover to-transparent pl-12 pr-1 text-text-faint opacity-0 transition-[opacity,color] hover:text-text group-hover:pointer-events-auto group-hover:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100 focus-visible:outline-none"
       >
         <ExternalLink size={15} />
       </button>
@@ -318,22 +331,11 @@ function formatModified(unix: number | null): string {
   return `${Math.floor(days / 365)}y ago`;
 }
 
-function Loading() {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center text-center">
-      <Loader2 size={28} className="animate-spin text-accent" />
-      <p className="mt-4 text-sm text-text-muted">Inspecting AppData and ProgramData</p>
-    </div>
-  );
-}
-
 function Empty() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed border-border text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-active text-text-muted">
-        <FolderOpen size={22} strokeWidth={2.5} />
-      </div>
-      <p className="mt-4 text-sm font-medium text-text">No app data folders found</p>
+    <div className="flex flex-1 flex-col items-center justify-center text-center">
+      <span className="ws-living-dot mb-4 h-2 w-2 rounded-full bg-accent" />
+      <p className="text-sm font-medium text-text">No app data folders found</p>
       <p className="mt-1 max-w-md text-xs text-text-muted">
         WinSweep could not match any installed app to a folder under AppData or ProgramData.
       </p>

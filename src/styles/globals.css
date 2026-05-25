@@ -40,7 +40,15 @@
   --success: oklch(0.62 0.15 152);
   --warning: oklch(0.72 0.145 78);
 
+  --warm-tissue: oklch(0.72 0.13 25);
+  --warm-tissue-soft: oklch(0.72 0.13 25 / 0.12);
+  --membrane: oklch(0.55 0.205 285 / 0.04);
+  --membrane-hover: oklch(0.55 0.205 285 / 0.08);
+  --bg-aurora-a: oklch(0.971 0.012 285);
+  --bg-aurora-b: oklch(0.965 0.014 250);
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-breathe: cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 .dark {
@@ -64,6 +72,13 @@
   --danger-soft: oklch(0.66 0.19 27 / 0.18);
   --success: oklch(0.7 0.15 152);
   --warning: oklch(0.78 0.14 78);
+
+  --warm-tissue: oklch(0.78 0.14 25);
+  --warm-tissue-soft: oklch(0.78 0.14 25 / 0.18);
+  --membrane: oklch(0.62 0.2 285 / 0.06);
+  --membrane-hover: oklch(0.62 0.2 285 / 0.12);
+  --bg-aurora-a: oklch(0.18 0.02 285);
+  --bg-aurora-b: oklch(0.16 0.018 250);
 }
 
 /* Map tokens into Tailwind. `inline` keeps utilities pointed at the live CSS
@@ -90,6 +105,13 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
 
+  --color-warm-tissue: var(--warm-tissue);
+  --color-warm-tissue-soft: var(--warm-tissue-soft);
+  --color-membrane: var(--membrane);
+  --color-membrane-hover: var(--membrane-hover);
+  --color-bg-aurora-a: var(--bg-aurora-a);
+  --color-bg-aurora-b: var(--bg-aurora-b);
+
   --font-sans: "JetBrains Mono", ui-monospace, "Cascadia Code", "Segoe UI", monospace;
 
   --radius-md: 0.5rem;
@@ -105,11 +127,24 @@ body,
 body {
   margin: 0;
   background-color: var(--bg);
+  background-image:
+    radial-gradient(at 18% 22%, var(--bg-aurora-a) 0%, transparent 55%),
+    radial-gradient(at 82% 78%, var(--bg-aurora-b) 0%, transparent 55%);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-sans);
   font-feature-settings: "calt", "liga", "tnum";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  animation: ws-aurora 30s var(--ease-breathe) infinite alternate;
+}
+
+/* Toggled by the Cleanup page when residuals are found, so the warm tint
+   stays scoped to that page rather than the whole shell. */
+body.ws-warm {
+  background-image:
+    radial-gradient(at 18% 22%, var(--warm-tissue-soft) 0%, transparent 55%),
+    radial-gradient(at 82% 78%, var(--bg-aurora-b) 0%, transparent 55%);
 }
 
 /* Desktop chrome: no document scroll or text selection on the shell. */
@@ -187,6 +222,30 @@ body {
   }
 }
 
+@keyframes ws-aurora {
+  0% {
+    background-position: 0% 0%, 100% 100%;
+  }
+  100% {
+    background-position: 8% 6%, 92% 94%;
+  }
+}
+
+@keyframes ws-breathe {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%     { opacity: 1;   transform: scale(1.08); }
+}
+
+@keyframes ws-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes ws-pulse-warm {
+  0%, 100% { background-color: var(--warm-tissue-soft); }
+  50%      { background-color: oklch(0.72 0.13 25 / 0.22); }
+}
+
 .ws-page {
   animation: ws-fade-in 0.22s var(--ease-out-expo) both;
 }
@@ -205,13 +264,78 @@ body {
   animation: ws-dialog-in 0.2s var(--ease-out-expo) both;
 }
 
+.ws-membrane {
+  border: 1px solid var(--border);
+  box-shadow: inset 0 0 0 1px var(--membrane);
+  transition: box-shadow 220ms var(--ease-out-expo);
+}
+.ws-membrane:hover,
+.ws-membrane:focus-within {
+  box-shadow: inset 0 0 0 1px var(--membrane-hover);
+}
+
+.ws-vein {
+  position: relative;
+}
+.ws-vein::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background-color: var(--accent);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 180ms var(--ease-out-expo);
+  pointer-events: none;
+}
+.ws-vein:hover::before,
+.ws-vein:focus-within::before {
+  opacity: 1;
+}
+
+.ws-living-dot {
+  animation: ws-breathe 3.5s var(--ease-breathe) infinite;
+}
+
+.ws-skeleton {
+  background-color: var(--surface-active);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--membrane-hover) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: ws-shimmer 1.6s linear infinite;
+  border-radius: var(--radius-md);
+}
+
+.ws-divider {
+  height: 1px;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--border) 18%,
+    var(--border) 82%,
+    transparent 100%
+  );
+}
+
 /* Respect reduced motion: keep state, drop the movement. */
 @media (prefers-reduced-motion: reduce) {
+  body,
   .ws-page,
   .ws-row,
   .ws-overlay,
   .ws-dialog,
+  .ws-living-dot,
+  .ws-skeleton,
   .animate-\[ws-indeterminate_1\.2s_ease-in-out_infinite\] {
     animation: none !important;
+  }
+  .ws-vein::before {
+    transition: none !important;
   }
 }

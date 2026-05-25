@@ -27,5 +27,13 @@ dist-ssr
 # Claude Code local settings (machine-specific permissions)
 .claude/settings.local.json
 
+# Superpowers / subagent / skills runtime artifacts
+.agents/
+skills-lock.json
+docs/superpowers/
+
+# Local caches
+.npm-cache/
+
 # OS / misc
 Thumbs.db

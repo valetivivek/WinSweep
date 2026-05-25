@@ -9,6 +9,7 @@ import type {
   ResidualItem,
   ScheduleConfig,
   ScheduleResult,
+  WindowsUpdate,
 } from "./types";
 import {
   MOCK_APP_DATA,
@@ -73,6 +74,19 @@ export async function updateApp(id: string, source?: string): Promise<void> {
     return;
   }
   await invoke("update_app", { id, source });
+}
+
+export async function listWindowsUpdates(): Promise<WindowsUpdate[]> {
+  if (!isTauri()) {
+    await delay(600);
+    return [];
+  }
+  return invoke<WindowsUpdate[]>("list_windows_updates");
+}
+
+export async function openWindowsUpdateSettings(): Promise<void> {
+  if (!isTauri()) return;
+  await invoke("open_windows_update_settings");
 }
 
 export async function scanResiduals(): Promise<ResidualItem[]> {

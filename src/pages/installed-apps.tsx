@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { ArrowDown, ArrowUp, FolderOpen, Info, Loader2, RotateCw, Trash2 } from "lucide-react";
-import { PageHeader } from "../components/page-header";
+import { ArrowDown, ArrowUp, FolderOpen, Info, RotateCw, Trash2 } from "lucide-react";
+import { HeroChip, PageHeader } from "../components/page-header";
 import { SearchInput } from "../components/ui/search-input";
 import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
 import { AppIcon } from "../components/ui/app-icon";
 import { ConfirmDialog } from "../components/ui/confirm-dialog";
+import { SkeletonRows } from "../components/ui/skeleton";
 import {
   getAppIcons,
   listInstalledApps,
@@ -13,7 +14,7 @@ import {
   uninstallApp,
 } from "../lib/api";
 import type { InstalledApp } from "../lib/types";
-import { formatBytes, formatDate, formatLastUsed } from "../lib/format";
+import { formatBytes, formatDate } from "../lib/format";
 import { cn } from "../lib/utils";
 
 type SortKey = "name" | "size" | "date";
@@ -172,6 +173,20 @@ export function InstalledAppsPage() {
         subtitle={
           loading ? "Reading installed software..." : `${apps.length} applications on this system`
         }
+        hero={{
+          metric: loading ? "--" : apps.length.toLocaleString(),
+          label: "Applications · WinSweep",
+          chips: (
+            <>
+              <HeroChip>{loading ? "Scanning" : `${apps.length} total`}</HeroChip>
+              {!loading && (
+                <HeroChip>
+                  {apps.filter((a) => a.category?.trim().toLowerCase() === "store").length} store
+                </HeroChip>
+              )}
+            </>
+          ),
+        }}
         actions={
           <Button variant="default" onClick={load} disabled={loading}>
             <RotateCw size={15} className={loading ? "animate-spin" : undefined} />
@@ -224,21 +239,18 @@ export function InstalledAppsPage() {
         </div>
       </div>
 
-      {/* Selection action bar */}
       {selected.size > 0 && (
-        <div className="mx-8 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-accent/30 bg-accent-soft px-4 py-2.5">
+        <div className="ws-dialog pointer-events-auto fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full border border-accent/30 bg-surface px-4 py-2 shadow-lg shadow-accent/10">
           <span className="text-xs font-medium text-text">
             {selected.size} app{selected.size === 1 ? "" : "s"} selected
           </span>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>
-              Clear
-            </Button>
-            <Button variant="danger" size="sm" onClick={() => setBulkConfirm(true)}>
-              <Trash2 size={15} />
-              Uninstall selected
-            </Button>
-          </div>
+          <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>
+            Clear
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => setBulkConfirm(true)}>
+            <Trash2 size={15} />
+            Uninstall selected
+          </Button>
         </div>
       )}
 
@@ -247,12 +259,14 @@ export function InstalledAppsPage() {
         {error && <ErrorBanner message={error} />}
         {notice && <NoticeBanner message={notice} onDismiss={() => setNotice(null)} />}
         {loading ? (
-          <LoadingState label="Scanning installed apps" />
+          <div className="ws-membrane overflow-hidden rounded-lg bg-surface">
+            <SkeletonRows count={12} />
+          </div>
         ) : visible.length === 0 ? (
           <EmptyState query={query} />
         ) : (
-          <div className="overflow-hidden rounded-lg border border-border bg-surface">
-            <div className="flex items-center gap-3 border-b border-border px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-text-faint">
+          <div className="ws-membrane overflow-hidden rounded-lg bg-surface">
+            <div className="flex items-center gap-6 border-b border-border px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-text-faint">
               <button
                 onClick={toggleAllVisible}
                 aria-label={allVisibleSelected ? "Deselect all" : "Select all"}
@@ -262,10 +276,9 @@ export function InstalledAppsPage() {
               </button>
               <span className="w-9" aria-hidden />
               <span className="flex-1">Name</span>
-              <span className="hidden w-28 text-right sm:block">Version</span>
-              <span className="w-20 text-right">Size</span>
-              <span className="hidden w-28 text-right md:block">Installed</span>
-              <span className="w-[150px]" aria-hidden />
+              <span className="hidden w-28 text-left sm:block">Version</span>
+              <span className="w-20 text-left">Size</span>
+              <span className="hidden w-28 text-left md:block">Installed</span>
             </div>
             <ul>
               {visible.map((app, i) => (
@@ -329,13 +342,12 @@ function AppRow({
 }) {
   const details = getAppDetails(app);
   const hoverSummary = getAppHoverSummary(app);
-  const lastUsed = formatLastUsed(app.lastUsedAt);
 
   return (
     <li
       style={{ "--i": Math.min(index, 12) } as CSSProperties}
       className={cn(
-        "ws-row group flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-surface-hover",
+        "ws-row ws-vein group relative flex items-center gap-6 px-4 py-3 transition-colors duration-150 hover:bg-surface-hover",
         index > 0 && "border-t border-border",
         selected && "bg-accent-soft/40",
       )}
@@ -356,12 +368,7 @@ function AppRow({
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium text-text">{app.name}</div>
         <div className="truncate text-xs text-text-muted group-hover:hidden group-focus-within:hidden">
-          <span>{app.publisher || "Unknown publisher"}</span>
-          <span className="text-text-faint"> · </span>
-          <span className={app.lastUsedAt ? "text-text-muted" : "text-text-faint"}>
-            <span className="sr-only">Last used </span>
-            {lastUsed}
-          </span>
+          {app.publisher || "Unknown publisher"}
         </div>
         <div className="hidden truncate text-xs text-text-muted group-hover:block group-focus-within:block">
           {hoverSummary}
@@ -369,19 +376,17 @@ function AppRow({
         <span className="sr-only">{details}</span>
       </div>
 
-      {/* Meta */}
-      <div className="hidden w-28 shrink-0 truncate text-right text-xs text-text-muted sm:block">
+      <div className="hidden w-28 shrink-0 truncate text-left text-xs tabular-nums text-text-muted sm:block">
         {app.version ? `v${app.version}` : "--"}
       </div>
-      <div className="w-20 shrink-0 text-right text-xs tabular-nums text-text-muted">
+      <div className="w-20 shrink-0 text-left text-xs tabular-nums text-text-muted">
         {formatBytes(app.sizeBytes)}
       </div>
-      <div className="hidden w-28 shrink-0 text-right text-xs tabular-nums text-text-muted md:block">
+      <div className="hidden w-28 shrink-0 text-left text-xs tabular-nums text-text-muted md:block">
         {formatDate(app.installDate)}
       </div>
 
-      {/* Actions, revealed on hover */}
-      <div className="flex w-[150px] shrink-0 justify-end gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-within:opacity-100">
+      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center gap-1 bg-gradient-to-l from-surface-hover via-surface-hover to-transparent pl-12 pr-1 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
         <Button
           variant="ghost"
           size="sm"
@@ -426,25 +431,16 @@ function getAppDetails(app: InstalledApp): string {
     app.category ? `Category: ${app.category}` : null,
     app.version ? `Version: ${app.version}` : "Version unknown",
     `Installed: ${formatDate(app.installDate)}`,
-    app.lastUsedAt ? `Last used: ${formatLastUsed(app.lastUsedAt)}` : "Last used unknown",
     app.installLocation ? `Path: ${app.installLocation}` : "Install path unknown",
   ].filter(Boolean);
 
   return parts.join(" · ");
 }
 
-function LoadingState({ label }: { label: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <Loader2 size={24} className="animate-spin text-accent" />
-      <p className="mt-4 text-sm text-text-muted">{label}</p>
-    </div>
-  );
-}
-
 function EmptyState({ query }: { query: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center">
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <span className="ws-living-dot mb-4 h-2 w-2 rounded-full bg-accent" />
       <p className="text-sm font-medium text-text">No apps found</p>
       <p className="mt-1 text-xs text-text-muted">
         {query ? `Nothing matches "${query}".` : "No installed applications were detected."}

@@ -3,7 +3,7 @@
 //! winget has no stable machine-readable output for `upgrade`, so we parse its
 //! fixed-width table by deriving column offsets from the header row.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::process::Command;
 
 #[derive(Serialize, Clone)]
@@ -165,4 +165,118 @@ pub fn update_app(id: String, source: Option<String>) -> Result<(), String> {
     } else {
         Err(format!("winget exited with code {}", status.code().unwrap_or(-1)))
     }
+}
+
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowsUpdate {
+    pub id: String,
+    pub title: String,
+    pub kb: String,
+    pub size_bytes: u64,
+    pub severity: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct PsWindowsUpdate {
+    title: String,
+    kb: String,
+    size: u64,
+    severity: String,
+}
+
+/// Query the Windows Update Agent via its COM API from PowerShell. We avoid
+/// the PSWindowsUpdate module so this works on stock systems. The script
+/// emits JSON we parse on the Rust side. Cold first call can take 10-30s
+/// while WUA wakes up; the UI must show a spinner.
+#[tauri::command]
+pub fn list_windows_updates() -> Result<Vec<WindowsUpdate>, String> {
+    let script = r#"
+$ErrorActionPreference = 'Stop'
+try {
+  $session = New-Object -ComObject Microsoft.Update.Session
+  $searcher = $session.CreateUpdateSearcher()
+  $result = $searcher.Search("IsInstalled=0 and IsHidden=0")
+  $items = @()
+  foreach ($u in $result.Updates) {
+    $kb = ''
+    if ($u.KBArticleIDs.Count -gt 0) { $kb = 'KB' + $u.KBArticleIDs[0] }
+    $items += [PSCustomObject]@{
+      Title    = [string]$u.Title
+      Kb       = [string]$kb
+      Size     = [int64]$u.MaxDownloadSize
+      Severity = [string]$u.MsrcSeverity
+    }
+  }
+  if ($items.Count -eq 0) {
+    Write-Output '[]'
+  } else {
+    $items | ConvertTo-Json -Compress -AsArray
+  }
+} catch {
+  Write-Error $_.Exception.Message
+  exit 1
+}
+"#;
+
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            script,
+        ])
+        .output()
+        .map_err(|e| format!("Failed to invoke PowerShell: {e}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!(
+            "Windows Update query failed: {}",
+            stderr.trim().lines().next().unwrap_or("unknown error")
+        ));
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if stdout.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let parsed: Vec<PsWindowsUpdate> = serde_json::from_str(&stdout)
+        .map_err(|e| format!("Could not parse Windows Update output: {e}"))?;
+
+    let updates = parsed
+        .into_iter()
+        .map(|u| {
+            let id = if u.kb.is_empty() {
+                u.title.clone()
+            } else {
+                u.kb.clone()
+            };
+            WindowsUpdate {
+                id,
+                title: u.title,
+                kb: u.kb,
+                size_bytes: u.size,
+                severity: u.severity,
+            }
+        })
+        .collect();
+
+    Ok(updates)
+}
+
+/// Open the Windows Settings → Windows Update page. We can't install Windows
+/// Updates from a non-elevated app, but we can take the user straight to the
+/// system surface that does.
+#[tauri::command]
+pub fn open_windows_update_settings() -> Result<(), String> {
+    Command::new("cmd")
+        .args(["/C", "start", "ms-settings:windowsupdate"])
+        .status()
+        .map_err(|e| format!("Could not open Windows Update settings: {e}"))?;
+    Ok(())
 }

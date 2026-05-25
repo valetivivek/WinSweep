@@ -11,11 +11,12 @@ import {
   RotateCw,
   Trash2,
 } from "lucide-react";
-import { PageHeader } from "../components/page-header";
+import { HeroChip, PageHeader } from "../components/page-header";
 import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
 import { ConfirmDialog } from "../components/ui/confirm-dialog";
 import { SearchInput } from "../components/ui/search-input";
+import { SkeletonRows } from "../components/ui/skeleton";
 import {
   addIgnored,
   clearIgnored,
@@ -290,6 +291,17 @@ export function CleanupPage() {
     visibleResults.length > 0 && visibleResults.every((r) => selected.has(r.id));
   const someVisibleSelected = visibleSelectedCount > 0 && !allVisibleSelected;
 
+  const totalReclaimableAll = useMemo(
+    () => results.reduce((sum, r) => sum + r.sizeBytes, 0),
+    [results],
+  );
+
+  useEffect(() => {
+    const warm = state === "results" && results.length > 0;
+    document.body.classList.toggle("ws-warm", warm);
+    return () => document.body.classList.remove("ws-warm");
+  }, [state, results.length]);
+
   return (
     <>
       <PageHeader
@@ -301,9 +313,23 @@ export function CleanupPage() {
             : results.length === 0
               ? "No residual files found"
               : `${results.length} leftover item${results.length === 1 ? "" : "s"} found · ${formatBytes(
-                  results.reduce((sum, r) => sum + r.sizeBytes, 0),
+                  totalReclaimableAll,
                 )} reclaimable`
         }
+        hero={{
+          metric: state === "scanning" ? "--" : formatBytes(totalReclaimableAll),
+          label: "Residual · Scan",
+          chips: (
+            <>
+              <HeroChip>
+                {state === "scanning"
+                  ? "Scanning"
+                  : `${results.length} item${results.length === 1 ? "" : "s"}`}
+              </HeroChip>
+              {state === "results" && results.length > 0 && <HeroChip>Action needed</HeroChip>}
+            </>
+          ),
+        }}
         actions={
           state === "results" && (
             <div className="flex items-center gap-2">
@@ -330,7 +356,7 @@ export function CleanupPage() {
       <div className="flex min-h-0 flex-1 flex-col px-8 pb-8">
         {error && <ErrorBanner message={error} />}
         {state === "scanning" ? (
-          <Scanning progress={progress} />
+          <ScanProgress progress={progress} />
         ) : results.length === 0 ? (
           <Spotless />
         ) : (
@@ -402,7 +428,7 @@ export function CleanupPage() {
                     return (
                       <section
                         key={group.app}
-                        className="overflow-hidden rounded-lg border border-border bg-surface"
+                        className="ws-membrane overflow-hidden rounded-lg bg-surface"
                       >
                         <GroupHeader
                           app={group.app}
@@ -493,7 +519,7 @@ function ResidualRow({
       aria-pressed={checked}
       aria-label={`${checked ? "Deselect" : "Select"} ${item.relatedTo} (${item.path})`}
       className={cn(
-        "ws-row group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/40",
+        "ws-row ws-vein group relative flex cursor-pointer items-center gap-6 px-4 py-3 transition-colors duration-150 hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/40",
         divided && "border-t border-border",
       )}
       onClick={onToggle}
@@ -512,9 +538,11 @@ function ResidualRow({
         <div className="truncate text-sm font-medium text-text">{item.relatedTo}</div>
         <div className="truncate font-mono text-xs text-text-muted">{item.path}</div>
       </div>
-      <CategoryBadge category={item.category} />
-      <LocationBadge location={item.location} />
-      <div className="w-16 shrink-0 text-right text-xs tabular-nums text-text-muted">
+      <div className="flex shrink-0 items-center gap-2">
+        <CategoryBadge category={item.category} />
+        <LocationBadge location={item.location} />
+      </div>
+      <div className="w-20 shrink-0 text-left text-xs tabular-nums text-text-muted">
         {item.kind === "registry" ? "key" : formatBytes(item.sizeBytes)}
       </div>
       <button
@@ -525,7 +553,7 @@ function ResidualRow({
           e.stopPropagation();
           onIgnore();
         }}
-        className="shrink-0 rounded p-1 text-text-faint opacity-0 transition-[opacity,color] duration-150 hover:text-text group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        className="pointer-events-none absolute inset-y-0 right-3 flex items-center bg-gradient-to-l from-surface-hover via-surface-hover to-transparent pl-12 pr-1 text-text-faint opacity-0 transition-[opacity,color] duration-150 hover:text-text group-hover:pointer-events-auto group-hover:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100 focus-visible:outline-none"
       >
         <EyeOff size={15} />
       </button>
@@ -659,23 +687,25 @@ function GroupHeader({
   );
 }
 
-function Scanning({ progress }: { progress: number }) {
+function ScanProgress({ progress }: { progress: number }) {
   const activeIndex = Math.min(
     SCAN_TARGETS.length - 1,
     Math.floor((progress / 100) * SCAN_TARGETS.length),
   );
   return (
-    <div className="flex flex-1 flex-col items-center justify-center text-center">
-      <Loader2 size={28} className="animate-spin text-accent" />
-      <p className="mt-5 text-sm font-medium text-text">Scanning your system</p>
-      <p className="mt-1 text-xs text-text-muted">
-        Checking {SCAN_TARGETS[activeIndex]} for leftover files
-      </p>
-      <div className="mt-6 h-1 w-64 overflow-hidden rounded-full bg-surface-active">
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <div className="flex items-center justify-between text-xs text-text-muted">
+        <span>Checking {SCAN_TARGETS[activeIndex]} for leftover files</span>
+        <span className="tabular-nums text-text-faint">{progress}%</span>
+      </div>
+      <div className="h-0.5 w-full overflow-hidden rounded-full bg-surface-active">
         <div
           className="h-full rounded-full bg-accent transition-[width] duration-150 ease-linear"
           style={{ width: `${progress}%` }}
         />
+      </div>
+      <div className="ws-membrane overflow-hidden rounded-lg bg-surface">
+        <SkeletonRows count={8} />
       </div>
     </div>
   );
@@ -683,11 +713,11 @@ function Scanning({ progress }: { progress: number }) {
 
 function Spotless() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed border-border text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent">
-        <Check size={22} strokeWidth={2.5} />
+    <div className="flex flex-1 flex-col items-center justify-center text-center">
+      <div className="ws-living-dot mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent">
+        <Check size={20} strokeWidth={2.5} />
       </div>
-      <p className="mt-4 text-sm font-medium text-text">Nothing to clean up</p>
+      <p className="text-sm font-medium text-text">Nothing to clean up</p>
       <p className="mt-1 text-xs text-text-muted">No residual files were left behind. Nice and tidy.</p>
     </div>
   );
@@ -702,11 +732,11 @@ function NoMatches({ query, categoryFilter }: { query: string; categoryFilter: C
       ? `Nothing matched "${query}".`
       : `No items in the "${categoryFilter}" category.`;
   return (
-    <div className="flex min-h-64 flex-col items-center justify-center rounded-lg border border-dashed border-border text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-active text-text-muted">
-        <FileIcon size={21} strokeWidth={2.5} />
+    <div className="flex min-h-64 flex-col items-center justify-center text-center">
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-surface-active text-text-muted">
+        <FileIcon size={19} strokeWidth={2.5} />
       </div>
-      <p className="mt-4 text-sm font-medium text-text">No orphan files match</p>
+      <p className="text-sm font-medium text-text">No orphan files match</p>
       <p className="mt-1 max-w-md text-xs text-text-muted">{body}</p>
     </div>
   );

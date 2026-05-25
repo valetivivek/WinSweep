@@ -32,23 +32,3 @@ function parseLocalDate(iso: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function startOfDay(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-/** Friendly last-used text. Returns a clear fallback when metadata is absent. */
-export function formatLastUsed(iso: string | null | undefined): string {
-  if (!iso) return "Last used unknown";
-  const date = parseLocalDate(iso);
-  if (!date) return "Last used unknown";
-
-  const today = startOfDay(new Date());
-  const used = startOfDay(date);
-  const diffDays = Math.round((today.getTime() - used.getTime()) / 86_400_000);
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays > 1 && diffDays <= 30) return `${diffDays} days ago`;
-
-  return `Last used ${formatDate(iso)}`;
-}
