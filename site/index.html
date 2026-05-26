@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="WinSweep is a modern Windows utility for managing installed software, app updates, leftover files, app data, and scheduled cleanup."
+    >
+    <meta name="theme-color" content="#f7f5fa">
+    <meta property="og:title" content="WinSweep">
+    <meta
+      property="og:description"
+      content="A precise Windows system toolkit for installed apps, winget updates, residual cleanup, app data, and scheduled sweeps."
+    >
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/winsweep-icon.png">
+    <title>WinSweep - Modern Windows System Toolkit</title>
+    <link rel="icon" href="assets/winsweep-icon.png">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <span class="scroll-sentinel" aria-hidden="true"></span>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header" data-elevated="false">
+      <a class="brand" href="#top" aria-label="WinSweep home">
+        <img class="brand-mark" src="assets/winsweep-icon.png" alt="">
+        <span class="brand-text">WinSweep</span>
+        <span class="brand-rule" aria-hidden="true"></span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav">
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="site-nav" id="site-nav" aria-label="Primary navigation">
+        <a href="#features">Features</a>
+        <a href="#workflow">Cleanup</a>
+        <a href="#status">Status</a>
+        <a href="#privacy">Privacy</a>
+        <a href="docs/design.html">Design</a>
+        <a href="#download">Download</a>
+      </nav>
+
+      <button class="theme-toggle" type="button" aria-label="Switch theme">
+        <span class="theme-icon" aria-hidden="true"></span>
+        <span class="theme-label">Dark</span>
+      </button>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Windows system toolkit / v0.3.0</p>
+          <h1 id="hero-title">WinSweep</h1>
+          <p class="hero-lede">
+            Manage installed apps, inspect updates, review orphaned leftovers, prune app data,
+            run a guarded quick sweep, and schedule weekly cleanup from one deliberate Windows
+            desktop app.
+          </p>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="button button-primary" href="https://github.com/valetivivek/WinSweep/releases">
+              <span class="button-label">Download from GitHub</span>
+              <span class="button-orb" aria-hidden="true"></span>
+            </a>
+            <a class="button button-secondary" href="https://github.com/valetivivek/WinSweep">
+              <span class="button-label">View source</span>
+              <span class="button-orb" aria-hidden="true"></span>
+            </a>
+          </div>
+          <dl class="trust-strip" aria-label="Project facts">
+            <div>
+              <dt>Platform</dt>
+              <dd>Windows 11</dd>
+            </div>
+            <div>
+              <dt>Privacy</dt>
+              <dd>No telemetry</dd>
+            </div>
+            <div>
+              <dt>Deletion</dt>
+              <dd>Review first</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="product-stage" aria-label="WinSweep interface preview">
+          <div class="app-window" data-screen-frame>
+            <div class="window-topbar">
+              <div class="window-caption">
+                <img src="assets/winsweep-icon.png" alt="">
+                <span>WinSweep</span>
+              </div>
+              <span class="window-title">System Toolkit</span>
+              <div class="window-system" aria-label="Windows app frame">
+                <span class="window-version">v0.3.0</span>
+                <span class="window-controls" aria-hidden="true">
+                  <span class="window-control minimize"></span>
+                  <span class="window-control maximize"></span>
+                  <span class="window-control close"></span>
+                </span>
+              </div>
+            </div>
+            <div class="window-shell">
+              <aside class="mock-sidebar" aria-label="Preview sections">
+                <div class="mock-logo">
+                  <img src="assets/winsweep-icon.png" alt="">
+                  <span>WinSweep</span>
+                </div>
+                <button class="mock-nav active" type="button" data-screen="installed">
+                  Installed Apps
+                </button>
+                <button class="mock-nav" type="button" data-screen="updates">Updates</button>
+                <button class="mock-nav" type="button" data-screen="cleanup">Cleanup</button>
+                <button class="mock-nav" type="button" data-screen="appdata">App Data</button>
+                <button class="mock-nav" type="button" data-screen="settings">Settings</button>
+                <div class="mock-spacer" aria-hidden="true"></div>
+                <button class="mock-quick-sweep" type="button" data-screen="quickSweep">
+                  <span>Quick Sweep</span>
+                  <small>Temp, Bin, Caches</small>
+                </button>
+              </aside>
+              <section class="mock-main" aria-live="polite">
+                <div class="mock-hero">
+                  <div>
+                    <p class="mock-kicker" data-screen-kicker>Library</p>
+                    <h2 data-screen-title>Installed Apps</h2>
+                    <p data-screen-subtitle>Search, sort, locate, and uninstall software.</p>
+                  </div>
+                  <div class="mock-metric">
+                    <strong data-screen-metric>147</strong>
+                    <span data-screen-label>Applications</span>
+                  </div>
+                </div>
+                <div class="mock-toolbar">
+                  <span class="mock-search" data-screen-search>Search by name or publisher</span>
+                  <span class="mock-chip" data-screen-chip-a>Name</span>
+                  <span class="mock-chip" data-screen-chip-b>Size</span>
+                  <span class="mock-chip" data-screen-chip-c>Installed</span>
+                </div>
+                <div class="mock-list" data-screen-list>
+                  <div class="mock-row">
+                    <span class="status-dot"></span>
+                    <strong>PowerToys</strong>
+                    <span>Microsoft</span>
+                    <span class="tabular">1.8 GB</span>
+                  </div>
+                  <div class="mock-row">
+                    <span class="status-dot muted"></span>
+                    <strong>Rustup</strong>
+                    <span>Rust Foundation</span>
+                    <span class="tabular">742 MB</span>
+                  </div>
+                  <div class="mock-row">
+                    <span class="status-dot warm"></span>
+                    <strong>Figma</strong>
+                    <span>Figma, Inc.</span>
+                  <span class="tabular">512 MB</span>
+                  </div>
+                </div>
+                <div class="mock-quick-panel" data-quick-panel aria-hidden="true">
+                  <div class="mock-quick-dialog">
+                    <p class="mock-kicker">Quick Sweep</p>
+                    <h3>Run a quick sweep now?</h3>
+                    <p>
+                      Uses the cleanup categories enabled in Settings: Temp, Recycle Bin, and app
+                      caches.
+                    </p>
+                    <div class="quick-targets" aria-label="Quick Sweep targets">
+                      <span>Temp</span>
+                      <span>Recycle Bin</span>
+                      <span>Caches</span>
+                    </div>
+                    <div class="quick-actions">
+                      <span>Sweep now</span>
+                      <span>Cancel</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="notice-band" aria-labelledby="notice-title">
+        <div>
+          <p class="eyebrow">Development notice</p>
+          <h2 id="notice-title">Powerful actions stay visible and confirmed.</h2>
+        </div>
+        <p>
+          WinSweep is in active development. Uninstall, cleanup, AppData removal, and scheduled
+          sweep actions should be reviewed carefully. Files and folders are sent to the Recycle Bin
+          when possible. Registry keys are permanent once removed.
+        </p>
+      </section>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <div class="section-heading">
+          <p class="eyebrow">What ships now</p>
+          <h2 id="features-title">Five focused surfaces for keeping a Windows install legible.</h2>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature feature-wide">
+            <span class="feature-index">01</span>
+            <h3>Installed Apps</h3>
+            <p>
+              Lists installed software with search, category filtering, sorting by name, size, or
+              install date, file location access, individual uninstallers, and bulk uninstall flow.
+            </p>
+            <ul class="inline-list">
+              <li>Publisher metadata</li>
+              <li>App icons</li>
+              <li>Bulk selection</li>
+            </ul>
+          </article>
+
+          <article class="feature">
+            <span class="feature-index">02</span>
+            <h3>Updates</h3>
+            <p>
+              Checks winget and Microsoft Store package updates, tracks per-app progress, and
+              surfaces pending Windows Update items with a direct jump to Windows Settings.
+            </p>
+          </article>
+
+          <article class="feature">
+            <span class="feature-index">03</span>
+            <h3>Cleanup</h3>
+            <p>
+              Auto-scans residual files, folders, and registry keys across AppData, ProgramData,
+              Temp, and Registry. Nothing is deleted until the user confirms the selected paths.
+            </p>
+          </article>
+
+          <article class="feature">
+            <span class="feature-index">04</span>
+            <h3>App Data</h3>
+            <p>
+              Finds AppData and ProgramData folders that map to software still installed, then lets
+              you reveal, sort, and move selected folders to the Recycle Bin.
+            </p>
+            <div class="mini-table" aria-label="App Data example rows">
+              <div>
+                <span>LocalAppData</span>
+                <strong class="tabular">2.4 GB</strong>
+              </div>
+              <div>
+                <span>ProgramData</span>
+                <strong class="tabular">814 MB</strong>
+              </div>
+              <div>
+                <span>Roaming</span>
+                <strong class="tabular">392 MB</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="feature">
+            <span class="feature-index">05</span>
+            <h3>Settings</h3>
+            <p>
+              Registers a Windows Scheduled Task for weekly unattended cleanup of Temp, Recycle Bin,
+              and app caches. Quick Sweep can run the same selected categories immediately.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="workflow section" id="workflow" aria-labelledby="workflow-title">
+        <div class="section-heading">
+          <p class="eyebrow">Cleanup model</p>
+          <h2 id="workflow-title">Scan broadly, select deliberately, delete only after confirmation.</h2>
+        </div>
+        <div class="workflow-track">
+          <article>
+            <span class="track-number">1</span>
+            <h3>Scan on open</h3>
+            <p>
+              Cleanup starts when the page opens and checks AppData, LocalAppData, ProgramData,
+              Temp, and Registry. Progress stays visible during the scan.
+            </p>
+          </article>
+          <article>
+            <span class="track-number">2</span>
+            <h3>Review grouped results</h3>
+            <p>
+              Results are grouped by related app and tagged as Logs, Cache, Config, Data, Crashes,
+              Installer, or Other. Search works across path, extension, kind, size, and metadata.
+            </p>
+          </article>
+          <article>
+            <span class="track-number">3</span>
+            <h3>Confirm destructive work</h3>
+            <p>
+              Selected files and folders go to the Recycle Bin where possible. Registry cleanup is
+              called out before confirmation because registry keys are removed permanently.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="status-section section" id="status" aria-labelledby="status-title">
+        <div class="section-heading">
+          <p class="eyebrow">Current status</p>
+          <h2 id="status-title">Built as a desktop app first, with a plain-spoken website second.</h2>
+        </div>
+        <div class="status-layout">
+          <div class="release-panel">
+            <p class="panel-label">Latest local project version</p>
+            <strong>0.3.0</strong>
+            <p>
+              The current codebase includes the living UI redesign, launch splash, skeleton loading
+              states, Windows Update detection, App Data management, scheduled cleanup, and signed
+              release workflow output for MSI and NSIS installer targets.
+            </p>
+          </div>
+          <div class="status-list" aria-label="Known limitations">
+            <div>
+              <span>Code signing</span>
+              <strong>Not yet available</strong>
+              <p>Windows SmartScreen can show an unverified publisher warning.</p>
+            </div>
+            <div>
+              <span>Windows Update install</span>
+              <strong>Delegated to Windows Settings</strong>
+              <p>System updates require OS elevation, so WinSweep opens the native settings page.</p>
+            </div>
+            <div>
+              <span>Distribution</span>
+              <strong>GitHub releases</strong>
+              <p>No Microsoft Store distribution, no telemetry, and no analytics are planned.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="download section" id="download" aria-labelledby="download-title">
+        <div class="download-copy">
+          <p class="eyebrow">Install</p>
+          <h2 id="download-title">Download from GitHub Releases.</h2>
+          <p>
+            Tagged releases publish Windows installers. Since there is no code-signing certificate
+            yet, Windows may ask you to confirm the unverified publisher before installation.
+          </p>
+        </div>
+        <div class="download-actions">
+          <a class="button button-primary" href="https://github.com/valetivivek/WinSweep/releases">
+            <span class="button-label">Open releases</span>
+            <span class="button-orb" aria-hidden="true"></span>
+          </a>
+          <a class="button button-secondary" href="docs/deployment.md">
+            <span class="button-label">Website deployment notes</span>
+            <span class="button-orb" aria-hidden="true"></span>
+          </a>
+        </div>
+      </section>
+
+      <section class="legal section" id="privacy" aria-labelledby="privacy-title">
+        <div class="section-heading">
+          <p class="eyebrow">Privacy, license, safety</p>
+          <h2 id="privacy-title">The small print is short on purpose.</h2>
+        </div>
+        <div class="legal-grid">
+          <article>
+            <h3>Privacy policy</h3>
+            <p>
+              WinSweep does not include telemetry, analytics, ads, or background network reporting.
+              The app runs locally and invokes Windows, winget, Microsoft Store sources, Windows
+              Update Agent, registry reads, file scans, and scheduled task registration only for the
+              features the user starts or configures.
+            </p>
+            <a href="docs/privacy.html">Read the policy</a>
+          </article>
+          <article>
+            <h3>License</h3>
+            <p>
+              WinSweep is released under the MIT License. The project copyright notice belongs to
+              Vishnu Vivek Valeti and WinSweep contributors.
+            </p>
+            <a href="docs/license.html">Read the license</a>
+          </article>
+          <article>
+            <h3>Safety notes</h3>
+            <p>
+              Nothing is auto-deleted. Cleanup and AppData removal require explicit confirmation.
+              Registry items are permanent once removed, so the UI labels those stakes before the
+              action continues.
+            </p>
+            <a href="docs/security.html">Read safety notes</a>
+          </article>
+          <article>
+            <h3>Third-party notices</h3>
+            <p>
+              The desktop app is built with Tauri, React, TypeScript, Vite, Tailwind CSS, Rust, and
+              Windows platform APIs. The website ships without trackers or external scripts.
+            </p>
+            <a href="docs/notices.html">Read notices</a>
+          </article>
+          <article class="legal-card-wide">
+            <h3>Design notes</h3>
+            <p>
+              The site now documents the visual system too: monospace identity, electric iris
+              accent, restrained motion, physical panes, and the same deletion-first honesty that
+              guides the app interface.
+            </p>
+            <a href="docs/design.html">Read design notes</a>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="footer-brand" href="#top">WinSweep</a>
+        <p>Modern Windows software management, cleanup, and update visibility.</p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <a href="https://github.com/valetivivek/WinSweep">GitHub</a>
+        <a href="https://github.com/valetivivek/WinSweep/releases">Releases</a>
+        <a href="docs/privacy.html">Privacy</a>
+        <a href="docs/design.html">Design</a>
+        <a href="docs/license.html">License</a>
+      </nav>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

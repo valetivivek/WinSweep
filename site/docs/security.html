@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="WinSweep security and safety notes.">
+    <meta name="theme-color" content="#f7f5fa">
+    <title>Safety Notes - WinSweep</title>
+    <link rel="icon" href="../assets/winsweep-icon.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="doc.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <span class="scroll-sentinel" aria-hidden="true"></span>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header" data-elevated="false">
+      <a class="brand" href="../index.html#top" aria-label="WinSweep home">
+        <img class="brand-mark" src="../assets/winsweep-icon.png" alt="">
+        <span class="brand-text">WinSweep</span>
+        <span class="brand-rule" aria-hidden="true"></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav">
+        <span></span>
+        <span></span>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Primary navigation">
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#workflow">Cleanup</a>
+        <a href="../index.html#status">Status</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="design.html">Design</a>
+        <a href="../index.html#download">Download</a>
+      </nav>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">
+        <span class="theme-icon" aria-hidden="true"></span>
+        <span class="theme-label">Dark</span>
+      </button>
+    </header>
+
+    <main class="doc-main" id="main">
+      <section class="doc-hero" aria-labelledby="doc-title">
+        <div>
+          <p class="eyebrow">Safety notes</p>
+          <h1 id="doc-title">Destructive work stays guarded.</h1>
+          <p>
+            WinSweep can inspect and change local system state. Its safety model is simple:
+            show the path, explain the action, and require confirmation before removal.
+          </p>
+        </div>
+        <aside class="doc-stamp" aria-label="Safety facts">
+          <img src="../assets/winsweep-icon.png" alt="">
+          <dl>
+            <div>
+              <dt>Auto-delete</dt>
+              <dd>Never</dd>
+            </div>
+            <div>
+              <dt>Files</dt>
+              <dd>Recycle Bin first</dd>
+            </div>
+            <div>
+              <dt>Registry</dt>
+              <dd>Permanent</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <div class="doc-layout">
+        <nav class="doc-toc" aria-label="Safety sections">
+          <strong>Contents</strong>
+          <a href="#actions">Destructive actions</a>
+          <a href="#installer">Installer status</a>
+          <a href="#windows-update">Windows Update</a>
+          <a href="#issues">Reporting issues</a>
+        </nav>
+
+        <article class="doc-panel">
+          <section class="doc-section" id="actions">
+            <h2>Destructive actions</h2>
+            <div class="doc-grid">
+              <div class="doc-card">
+                <h3>Review first</h3>
+                <p>Cleanup and App Data deletion require explicit confirmation.</p>
+              </div>
+              <div class="doc-card">
+                <h3>Recycle Bin</h3>
+                <p>Files and folders are sent to the Recycle Bin when possible.</p>
+              </div>
+              <div class="doc-card">
+                <h3>Registry</h3>
+                <p>Registry keys are removed permanently once confirmed.</p>
+              </div>
+              <div class="doc-card">
+                <h3>Schedules</h3>
+                <p>Scheduled cleanup only runs the categories you enable.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="doc-section" id="installer">
+            <h2>Installer status</h2>
+            <p>
+              WinSweep does not have a code-signing certificate yet. Windows SmartScreen can warn
+              that the publisher is unverified. Download only from the official GitHub repository
+              and inspect release notes before installing.
+            </p>
+          </section>
+
+          <section class="doc-section" id="windows-update">
+            <h2>Windows Update</h2>
+            <p>
+              WinSweep lists pending Windows Update items, but installs are handled by Windows
+              Settings because system updates require operating system elevation.
+            </p>
+          </section>
+
+          <section class="doc-section" id="issues">
+            <h2>Reporting issues</h2>
+            <p>
+              Report suspicious behavior, deletion mistakes, or installer concerns through the
+              GitHub issue tracker.
+            </p>
+            <div class="doc-footer-actions">
+              <a class="button button-primary" href="https://github.com/valetivivek/WinSweep/issues">
+                <span class="button-label">Open GitHub issues</span>
+                <span class="button-orb" aria-hidden="true"></span>
+              </a>
+              <a class="button button-secondary" href="../index.html#privacy">
+                <span class="button-label">Back to site</span>
+                <span class="button-orb" aria-hidden="true"></span>
+              </a>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <script src="../script.js"></script>
+  </body>
+</html>

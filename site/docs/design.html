@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="WinSweep website design notes and visual system.">
+    <meta name="theme-color" content="#f7f5fa">
+    <title>Design Notes - WinSweep</title>
+    <link rel="icon" href="../assets/winsweep-icon.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="doc.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <span class="scroll-sentinel" aria-hidden="true"></span>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header" data-elevated="false">
+      <a class="brand" href="../index.html#top" aria-label="WinSweep home">
+        <img class="brand-mark" src="../assets/winsweep-icon.png" alt="">
+        <span class="brand-text">WinSweep</span>
+        <span class="brand-rule" aria-hidden="true"></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav">
+        <span></span>
+        <span></span>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Primary navigation">
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#workflow">Cleanup</a>
+        <a href="../index.html#status">Status</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="design.html">Design</a>
+        <a href="../index.html#download">Download</a>
+      </nav>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">
+        <span class="theme-icon" aria-hidden="true"></span>
+        <span class="theme-label">Dark</span>
+      </button>
+    </header>
+
+    <main class="doc-main" id="main">
+      <section class="doc-hero" aria-labelledby="doc-title">
+        <div>
+          <p class="eyebrow">Design notes</p>
+          <h1 id="doc-title">Quiet system control, made tactile.</h1>
+          <p>
+            The website extends the app identity without turning it into a generic SaaS page:
+            monospace typography, electric iris focus, soft machined surfaces, and direct language.
+          </p>
+        </div>
+        <aside class="doc-stamp" aria-label="Design facts">
+          <img src="../assets/winsweep-icon.png" alt="">
+          <dl>
+            <div>
+              <dt>Type</dt>
+              <dd>JetBrains Mono</dd>
+            </div>
+            <div>
+              <dt>Accent</dt>
+              <dd>Electric iris</dd>
+            </div>
+            <div>
+              <dt>Motion</dt>
+              <dd>Reveal and hover</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <div class="doc-layout">
+        <nav class="doc-toc" aria-label="Design sections">
+          <strong>Contents</strong>
+          <a href="#principles">Principles</a>
+          <a href="#surfaces">Surfaces</a>
+          <a href="#motion">Motion</a>
+          <a href="#content">Content</a>
+        </nav>
+
+        <article class="doc-panel">
+          <section class="doc-section" id="principles">
+            <h2>Principles</h2>
+            <div class="doc-grid">
+              <div class="doc-card">
+                <h3>Truth first</h3>
+                <p>Real paths, versions, sources, sizes, and limitations stay visible.</p>
+              </div>
+              <div class="doc-card">
+                <h3>One accent</h3>
+                <p>Electric iris carries actions, selection, focus, and active state.</p>
+              </div>
+              <div class="doc-card">
+                <h3>No scareware</h3>
+                <p>No fake urgency, giant danger claims, or theatrical cleanup metrics.</p>
+              </div>
+              <div class="doc-card">
+                <h3>Windows native</h3>
+                <p>The site supports the desktop app instead of hiding its platform reality.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="doc-section" id="surfaces">
+            <h2>Surfaces</h2>
+            <p>
+              Major panes use a double-bezel feel: a soft outer shell, an inner highlight, and
+              restrained radius. It should read like a clean instrument panel rather than a toy
+              dashboard.
+            </p>
+          </section>
+
+          <section class="doc-section" id="motion">
+            <h2>Motion</h2>
+            <p>
+              Motion is intentionally quiet. Sections reveal with weight, controls press down, and
+              preview tabs update without page navigation. The site respects reduced motion.
+            </p>
+          </section>
+
+          <section class="doc-section" id="content">
+            <h2>Content</h2>
+            <p>
+              Copy avoids vague software promises. It states what WinSweep does today, calls out
+              development status, and keeps destructive actions framed around review and consent.
+            </p>
+            <div class="doc-footer-actions">
+              <a class="button button-primary" href="../index.html#top">
+                <span class="button-label">Back to homepage</span>
+                <span class="button-orb" aria-hidden="true"></span>
+              </a>
+              <a class="button button-secondary" href="privacy.html">
+                <span class="button-label">Read privacy policy</span>
+                <span class="button-orb" aria-hidden="true"></span>
+              </a>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <script src="../script.js"></script>
+  </body>
+</html>

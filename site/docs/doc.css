@@ -1,0 +1,235 @@
+.doc-main {
+  width: var(--container);
+  margin: 0 auto;
+  padding: clamp(76px, 10vw, 124px) 0 clamp(80px, 10vw, 132px);
+}
+
+.doc-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 0.55fr);
+  gap: clamp(28px, 6vw, 74px);
+  align-items: end;
+  min-height: 54dvh;
+  padding: clamp(38px, 6vw, 78px) 0;
+}
+
+.doc-hero h1 {
+  max-width: 980px;
+  margin-bottom: 22px;
+  font-size: clamp(42px, 8vw, 94px);
+}
+
+.doc-hero p {
+  max-width: 760px;
+  color: var(--text-muted);
+  font-size: clamp(15px, 2vw, 19px);
+}
+
+.doc-stamp {
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--surface-2) 76%, transparent)),
+    var(--surface);
+  box-shadow: var(--soft-shadow), inset 0 1px 1px rgba(255, 255, 255, 0.36);
+  padding: 18px;
+}
+
+.doc-stamp img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  margin-bottom: 28px;
+}
+
+.doc-stamp dl {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+}
+
+.doc-stamp div {
+  border-top: 1px solid var(--hairline);
+  padding-top: 14px;
+}
+
+.doc-stamp dt {
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.doc-stamp dd {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.doc-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.28fr) minmax(0, 1fr);
+  gap: clamp(26px, 5vw, 68px);
+  align-items: start;
+}
+
+.doc-toc {
+  position: sticky;
+  top: 96px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  padding: 16px;
+}
+
+.doc-toc strong {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--text-faint);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.doc-toc a {
+  display: block;
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 760;
+  padding: 9px 10px;
+  transition:
+    background 520ms var(--ease),
+    color 520ms var(--ease),
+    transform 520ms var(--ease);
+}
+
+.doc-toc a:hover,
+.doc-toc a:focus-visible {
+  background: var(--accent-soft);
+  color: var(--text);
+  outline: 0;
+}
+
+.doc-panel {
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: calc(var(--radius-lg) + 6px);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  box-shadow: var(--soft-shadow), inset 0 1px 1px rgba(255, 255, 255, 0.36);
+  padding: clamp(22px, 4vw, 42px);
+}
+
+.doc-section {
+  padding: clamp(24px, 4vw, 42px) 0;
+}
+
+.doc-section:first-child {
+  padding-top: 0;
+}
+
+.doc-section + .doc-section {
+  border-top: 1px solid var(--hairline);
+}
+
+.doc-section h2 {
+  max-width: 860px;
+  font-size: clamp(24px, 4vw, 44px);
+}
+
+.doc-section p,
+.doc-section li {
+  color: var(--text-muted);
+}
+
+.doc-section p {
+  max-width: 78ch;
+}
+
+.doc-section ul,
+.doc-section ol {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding-left: 22px;
+}
+
+.doc-section code,
+.license-block {
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-callout {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
+  color: var(--text);
+  margin: 24px 0;
+  padding: 18px;
+}
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.doc-card {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-2) 68%, transparent);
+  padding: 18px;
+}
+
+.doc-card h3 {
+  margin-bottom: 8px;
+}
+
+.doc-card p {
+  margin-bottom: 0;
+}
+
+.license-block {
+  overflow-x: auto;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  line-height: 1.65;
+  padding: 22px;
+  white-space: pre-wrap;
+}
+
+.doc-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+@media (max-width: 900px) {
+  .doc-hero,
+  .doc-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .doc-toc {
+    position: static;
+  }
+}
+
+@media (max-width: 680px) {
+  .doc-main {
+    padding-top: 44px;
+  }
+
+  .doc-grid {
+    grid-template-columns: 1fr;
+  }
+}

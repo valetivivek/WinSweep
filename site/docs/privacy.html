@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="WinSweep privacy policy for the website and desktop app.">
+    <meta name="theme-color" content="#f7f5fa">
+    <title>Privacy Policy - WinSweep</title>
+    <link rel="icon" href="../assets/winsweep-icon.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="doc.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <span class="scroll-sentinel" aria-hidden="true"></span>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header" data-elevated="false">
+      <a class="brand" href="../index.html#top" aria-label="WinSweep home">
+        <img class="brand-mark" src="../assets/winsweep-icon.png" alt="">
+        <span class="brand-text">WinSweep</span>
+        <span class="brand-rule" aria-hidden="true"></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav">
+        <span></span>
+        <span></span>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Primary navigation">
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#workflow">Cleanup</a>
+        <a href="../index.html#status">Status</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="design.html">Design</a>
+        <a href="../index.html#download">Download</a>
+      </nav>
+      <button class="theme-toggle" type="button" aria-label="Switch theme">
+        <span class="theme-icon" aria-hidden="true"></span>
+        <span class="theme-label">Dark</span>
+      </button>
+    </header>
+
+    <main class="doc-main" id="main">
+      <section class="doc-hero" aria-labelledby="doc-title">
+        <div>
+          <p class="eyebrow">Privacy policy</p>
+          <h1 id="doc-title">Local first by default.</h1>
+          <p>
+            WinSweep is built around visible local actions. It does not include telemetry,
+            analytics, advertising, or background reporting in the desktop app or this website.
+          </p>
+        </div>
+        <aside class="doc-stamp" aria-label="Privacy facts">
+          <img src="../assets/winsweep-icon.png" alt="">
+          <dl>
+            <div>
+              <dt>Updated</dt>
+              <dd>May 26, 2026</dd>
+            </div>
+            <div>
+              <dt>Telemetry</dt>
+              <dd>None</dd>
+            </div>
+            <div>
+              <dt>Website scripts</dt>
+              <dd>No trackers</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <div class="doc-layout">
+        <nav class="doc-toc" aria-label="Privacy sections">
+          <strong>Contents</strong>
+          <a href="#desktop">Desktop app</a>
+          <a href="#website">Website</a>
+          <a href="#downloads">Downloads</a>
+          <a href="#contact">Contact</a>
+        </nav>
+
+        <article class="doc-panel">
+          <section class="doc-section" id="desktop">
+            <h2>Desktop app</h2>
+            <p>
+              WinSweep runs locally on your Windows computer. It reads installed app metadata,
+              uses winget and Microsoft Store sources for update checks, uses the Windows Update
+              Agent to list pending system updates, scans selected system locations for residual
+              files, reads relevant registry locations, and registers a Windows Scheduled Task when
+              you enable scheduled cleanup.
+            </p>
+            <div class="doc-callout">
+              The app does not send app lists, file paths, registry keys, cleanup results, or
+              settings to WinSweep developers.
+            </div>
+            <p>
+              WinSweep can invoke Windows services that contact Microsoft or package sources,
+              including winget, Microsoft Store sources, and Windows Update. Those services are
+              governed by their own terms and privacy policies.
+            </p>
+          </section>
+
+          <section class="doc-section" id="website">
+            <h2>Website</h2>
+            <p>
+              This static website does not set cookies, run analytics, or load external tracking
+              scripts. If hosted on GitHub Pages, GitHub may process standard server logs for
+              security, reliability, and abuse prevention.
+            </p>
+          </section>
+
+          <section class="doc-section" id="downloads">
+            <h2>Downloads</h2>
+            <p>
+              Installers are distributed through GitHub Releases. GitHub may record access to
+              release pages and downloaded files according to GitHub policies.
+            </p>
+          </section>
+
+          <section class="doc-section" id="contact">
+            <h2>Contact</h2>
+            <p>
+              Open an issue on the WinSweep GitHub repository for privacy questions or corrections.
+            </p>
+            <div class="doc-footer-actions">
+              <a class="button button-primary" href="https://github.com/valetivivek/WinSweep/issues">
+                <span class="button-label">Open GitHub issues</span>
+                <span class="button-orb" aria-hidden="true"></span>
+              </a>
+              <a class="button button-secondary" href="../index.html#privacy">
+                <span class="button-label">Back to site</span>
+                <span class="button-orb" aria-hidden="true"></span>
+              </a>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <script src="../script.js"></script>
+  </body>
+</html>
